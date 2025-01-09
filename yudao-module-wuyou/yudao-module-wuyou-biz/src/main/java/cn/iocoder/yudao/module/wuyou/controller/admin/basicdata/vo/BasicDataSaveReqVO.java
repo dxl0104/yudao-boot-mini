@@ -1,9 +1,7 @@
 package cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
-import java.util.*;
-import jakarta.validation.constraints.*;
+import lombok.Data;
 
 @Schema(description = "管理后台 - 无忧基础数据新增/修改 Request VO")
 @Data
