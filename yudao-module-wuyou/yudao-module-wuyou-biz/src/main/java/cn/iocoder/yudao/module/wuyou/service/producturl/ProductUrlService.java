@@ -52,4 +52,5 @@ public interface ProductUrlService {
      */
     PageResult<ProductUrlDO> getProductUrlPage(ProductUrlPageReqVO pageReqVO);
 
+    Long createBatchProductUrl(ProductUrlBatchSaveReqVO createReqVO);
 }

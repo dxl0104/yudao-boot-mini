@@ -45,6 +45,13 @@ public class ProductUrlController {
         return success(productUrlService.createProductUrl(createReqVO));
     }
 
+    @PostMapping("/createBatch")
+    @Operation(summary = "批量创建商品url列表")
+    @PreAuthorize("@ss.hasPermission('wuyou:product-url:create')")
+    public CommonResult<Long> createBatchProductUrl(@Valid @RequestBody ProductUrlBatchSaveReqVO createReqVO) {
+        return success(productUrlService.createBatchProductUrl(createReqVO));
+    }
+
     @PutMapping("/update")
     @Operation(summary = "更新商品url列表")
     @PreAuthorize("@ss.hasPermission('wuyou:product-url:update')")

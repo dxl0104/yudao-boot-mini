@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.wuyou.service.producturl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
@@ -24,6 +25,7 @@ import static cn.iocoder.yudao.module.wuyou.enums.ErrorCodeConstants.*;
  */
 @Service
 @Validated
+@Slf4j
 public class ProductUrlServiceImpl implements ProductUrlService {
 
     @Resource
@@ -33,9 +35,28 @@ public class ProductUrlServiceImpl implements ProductUrlService {
     public Long createProductUrl(ProductUrlSaveReqVO createReqVO) {
         // 插入
         ProductUrlDO productUrl = BeanUtils.toBean(createReqVO, ProductUrlDO.class);
-        productUrlMapper.insert(productUrl);
+        try {
+            productUrlMapper.insert(productUrl);
+        }catch (Exception e){
+            log.info("url 重复{}",createReqVO.getUrl());
+        }
         // 返回
         return productUrl.getId();
+    }
+
+    @Override
+    public Long createBatchProductUrl(ProductUrlBatchSaveReqVO createReqVO) {
+        List<String> productList = createReqVO.getProductList();
+        for (String url : productList) {
+            ProductUrlDO productUrlDO = new ProductUrlDO();
+            productUrlDO.setUrl(url);
+            try {
+                productUrlMapper.insert(productUrlDO);
+            }catch (Exception e){
+                log.info("url 重复{}",url);
+            }
+        }
+        return null;
     }
 
     @Override
