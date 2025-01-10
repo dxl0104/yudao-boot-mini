@@ -6,10 +6,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
-import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataPageReqVO;
-import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataReqVO;
-import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataRespVO;
-import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataSaveReqVO;
+import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.*;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.basicdata.BasicDataDO;
 import cn.iocoder.yudao.module.wuyou.service.basicdata.BasicDataService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -115,17 +112,11 @@ public class BasicDataController {
     }
 
     @PostMapping("/getCategoryData")
-    public Integer getCategoryData(@RequestBody Map<String, Object> params) {
-        String sourceUrl = params.get("sourceUrl").toString();
-        Integer page = Integer.valueOf(params.get("p").toString());
-        String cookie = null;
-        if (params.get("cookie") != null && "".equals(params.get("cookie").toString())) {
-            cookie = params.get("cookie").toString();
-        }
-        return getCategoryData(sourceUrl, page, cookie);
+    public CommonResult<String> getCategoryData(@RequestBody BasicDataRqeCategoryVO basicDataRqeCategoryVO) {
+        return success(getCategoryData(basicDataRqeCategoryVO.getSourceUrl(), basicDataRqeCategoryVO.getP(), null));
     }
 
-    public Integer getCategoryData(String sourceUrl, Integer page, String cookie) {
+    public String getCategoryData(String sourceUrl, Integer page, String cookie) {
         try {
             String url = sourceUrl + "&p=" + page;
             // 创建 URL 对象
@@ -169,25 +160,24 @@ public class BasicDataController {
             // 获取响应码
             int responseCode = connection.getResponseCode();
             System.out.println("Response Code: " + responseCode);
-            return responseCode;
 
-//            if (responseCode != HttpURLConnection.HTTP_OK) {
-//                // 返回非 200 的响应时，抛出异常
-//                throw new Exception("HTTP error! Status: " + responseCode);
-//            }
-//
-//            // 读取响应内容
-//            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-//            String inputLine;
-//            StringBuffer response = new StringBuffer();
-//            while ((inputLine = in.readLine()) != null) {
-//                response.append(inputLine);
-//            }
-//            in.close();
-//
-//            // 输出返回的内容
-//            System.out.println(response.toString());
-//            return response.toString();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                // 返回非 200 的响应时，抛出异常
+                throw new Exception("HTTP error! Status: " + responseCode);
+            }
+
+            // 读取响应内容
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+            // 输出返回的内容
+            System.out.println(response.toString());
+            return response.toString();
 
         } catch (Exception e) {
             e.printStackTrace();

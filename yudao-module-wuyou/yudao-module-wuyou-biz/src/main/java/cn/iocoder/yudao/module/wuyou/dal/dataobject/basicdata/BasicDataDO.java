@@ -43,4 +43,9 @@ public class BasicDataDO extends BaseDO {
      */
     private String category;
 
+    /**
+     * 租户编号
+     */
+    private Long tenantId;
+
 }
