@@ -8,4 +8,5 @@ public class BasicDataReqVO {
     private String html;
     private String sourceUrl;
     private Integer sourcePlatform;
+    private String delivery;
 }

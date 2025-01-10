@@ -3,6 +3,8 @@ package cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Schema(description = "管理后台 - 无忧基础数据新增/修改 Request VO")
 @Data
 public class BasicDataSaveReqVO {
@@ -17,7 +19,7 @@ public class BasicDataSaveReqVO {
     private String dataJson;
 
     @Schema(description = "快递费")
-    private Integer delivery;
+    private BigDecimal delivery;
 
     @Schema(description = "分类")
     private String category;

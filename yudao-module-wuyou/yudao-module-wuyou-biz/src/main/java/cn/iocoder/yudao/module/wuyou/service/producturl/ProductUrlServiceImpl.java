@@ -1,5 +1,7 @@
 package cn.iocoder.yudao.module.wuyou.service.producturl;
 
+import cn.iocoder.yudao.module.wuyou.dal.dataobject.basicdata.BasicDataDO;
+import cn.iocoder.yudao.module.wuyou.dal.mysql.basicdata.BasicDataMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
@@ -30,6 +32,9 @@ public class ProductUrlServiceImpl implements ProductUrlService {
 
     @Resource
     private ProductUrlMapper productUrlMapper;
+
+    @Resource
+    private BasicDataMapper basicDataMapper;
 
     @Override
     public Long createProductUrl(ProductUrlSaveReqVO createReqVO) {

@@ -1,33 +1,33 @@
 package cn.iocoder.yudao.module.wuyou.controller.admin.producturl;
 
-import org.springframework.web.bind.annotation.*;
-import javax.annotation.Resource;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.security.access.prepost.PreAuthorize;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Operation;
-
-import javax.validation.constraints.*;
-import javax.validation.*;
-import javax.servlet.http.*;
-import java.util.*;
-import java.io.IOException;
-
+import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
+import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
-
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
-
-import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
-import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.*;
-
-import cn.iocoder.yudao.module.wuyou.controller.admin.producturl.vo.*;
+import cn.iocoder.yudao.module.wuyou.controller.admin.producturl.vo.ProductUrlBatchSaveReqVO;
+import cn.iocoder.yudao.module.wuyou.controller.admin.producturl.vo.ProductUrlPageReqVO;
+import cn.iocoder.yudao.module.wuyou.controller.admin.producturl.vo.ProductUrlRespVO;
+import cn.iocoder.yudao.module.wuyou.controller.admin.producturl.vo.ProductUrlSaveReqVO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.producturl.ProductUrlDO;
+import cn.iocoder.yudao.module.wuyou.dal.mysql.producturl.ProductUrlMapper;
 import cn.iocoder.yudao.module.wuyou.service.producturl.ProductUrlService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.io.IOException;
+import java.util.List;
+
+import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.EXPORT;
+import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Tag(name = "管理后台 - 商品url列表")
 @RestController
@@ -37,6 +37,9 @@ public class ProductUrlController {
 
     @Resource
     private ProductUrlService productUrlService;
+
+    @Resource
+    private ProductUrlMapper productUrlMapper;
 
     @PostMapping("/create")
     @Operation(summary = "创建商品url列表")
@@ -78,10 +81,10 @@ public class ProductUrlController {
         return success(BeanUtils.toBean(productUrl, ProductUrlRespVO.class));
     }
 
-    @GetMapping("/page")
+    @PostMapping("/page")
     @Operation(summary = "获得商品url列表分页")
     @PreAuthorize("@ss.hasPermission('wuyou:product-url:query')")
-    public CommonResult<PageResult<ProductUrlRespVO>> getProductUrlPage(@Valid ProductUrlPageReqVO pageReqVO) {
+    public CommonResult<PageResult<ProductUrlRespVO>> getProductUrlPage(@RequestBody @Valid ProductUrlPageReqVO pageReqVO) {
         PageResult<ProductUrlDO> pageResult = productUrlService.getProductUrlPage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, ProductUrlRespVO.class));
     }

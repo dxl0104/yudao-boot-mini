@@ -6,7 +6,9 @@ import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataPageReqVO;
 import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataSaveReqVO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.basicdata.BasicDataDO;
+import cn.iocoder.yudao.module.wuyou.dal.dataobject.producturl.ProductUrlDO;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.basicdata.BasicDataMapper;
+import cn.iocoder.yudao.module.wuyou.dal.mysql.producturl.ProductUrlMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -28,11 +30,18 @@ public class BasicDataServiceImpl implements BasicDataService {
     @Resource
     private BasicDataMapper basicDataMapper;
 
+    @Resource
+    private ProductUrlMapper productUrlMapper;
+
     @Override
     public Long createBasicData(BasicDataSaveReqVO createReqVO) {
         // 插入
         BasicDataDO basicData = BeanUtils.toBean(createReqVO, BasicDataDO.class);
         basicDataMapper.insert(basicData);
+        String url = basicData.getUrl();
+        ProductUrlDO productUrlDO = productUrlMapper.selectOne(ProductUrlDO::getUrl, url);
+        productUrlDO.setProcessFlag(1);
+        productUrlMapper.updateById(productUrlDO);
         // 返回
         return basicData.getId();
     }

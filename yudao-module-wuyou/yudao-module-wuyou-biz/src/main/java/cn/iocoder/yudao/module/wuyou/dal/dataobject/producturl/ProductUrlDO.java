@@ -32,4 +32,6 @@ public class ProductUrlDO extends BaseDO {
      */
     private String url;
 
+    private Integer processFlag;
+
 }

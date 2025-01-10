@@ -12,6 +12,7 @@ import cn.iocoder.yudao.module.wuyou.service.basicdata.BasicDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -29,12 +30,17 @@ import java.util.List;
 import java.util.Map;
 
 import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.EXPORT;
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.common.pojo.CommonResult.error;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
+import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.DEPT_NOT_FOUND;
+import static cn.iocoder.yudao.module.wuyou.enums.ErrorCodeConstants.GET_CAGETORY_NOT_EXISTS;
 
 @Tag(name = "管理后台 - 无忧基础数据")
 @RestController
 @RequestMapping("/wuyou/basic-data")
 @Validated
+@Slf4j
 public class BasicDataController {
 
     @Resource
@@ -86,12 +92,12 @@ public class BasicDataController {
     @PreAuthorize("@ss.hasPermission('wuyou:basic-data:export')")
     @ApiAccessLog(operateType = EXPORT)
     public void exportBasicDataExcel(@Valid BasicDataPageReqVO pageReqVO,
-              HttpServletResponse response) throws IOException {
+                                     HttpServletResponse response) throws IOException {
         pageReqVO.setPageSize(PageParam.PAGE_SIZE_NONE);
         List<BasicDataDO> list = basicDataService.getBasicDataPage(pageReqVO).getList();
         // 导出 Excel
         ExcelUtils.write(response, "无忧基础数据.xls", "数据", BasicDataRespVO.class,
-                        BeanUtils.toBean(list, BasicDataRespVO.class));
+                BeanUtils.toBean(list, BasicDataRespVO.class));
     }
 
     @PostMapping("/verifyDuplicate")
@@ -106,17 +112,17 @@ public class BasicDataController {
     }
 
     @PostMapping("/getOneProductDetail")
-    public CommonResult getOneProductDetail(@RequestBody Map<String, Object> params) {
-        String sourceUrl = params.get("sourceUrl").toString();
-        return success(getOneProduct(sourceUrl));
+    public CommonResult getOneProductDetail(@RequestBody BasicDataRqeCategoryVO basicDataRqeCategoryVO) {
+        return getOneProduct(basicDataRqeCategoryVO.getSourceUrl());
     }
 
     @PostMapping("/getCategoryData")
     public CommonResult<String> getCategoryData(@RequestBody BasicDataRqeCategoryVO basicDataRqeCategoryVO) {
-        return success(getCategoryData(basicDataRqeCategoryVO.getSourceUrl(), basicDataRqeCategoryVO.getP(), null));
+        log.info("返回数据{}",getCategoryData(basicDataRqeCategoryVO.getSourceUrl(), basicDataRqeCategoryVO.getP(), null));
+        return getCategoryData(basicDataRqeCategoryVO.getSourceUrl(), basicDataRqeCategoryVO.getP(), null);
     }
 
-    public String getCategoryData(String sourceUrl, Integer page, String cookie) {
+    public CommonResult<String> getCategoryData(String sourceUrl, Integer page, String cookie) {
         try {
             String url = sourceUrl + "&p=" + page;
             // 创建 URL 对象
@@ -132,8 +138,7 @@ public class BasicDataController {
             connection.setRequestProperty("content-type", "application/json");
             if (cookie != null) {
                 connection.setRequestProperty("cookie", cookie);
-            }
-            else {
+            } else {
                 //cookie必须有 没有的话无法请求
                 connection.setRequestProperty("cookie", "_cmuid=90205531-ec74-4b4c-8a95-49986067b911; _gcl_au=1.1.640494160.1735788908; gdpr_permission_given=1; __gfp_64b=-TURNEDOFF; OptOutOnRequest=groups=googleAnalytics:1,googleAdvertisingProducts:1,tikTok:1,allegroAdsNetwork:1,facebook:1; _fbp=fb.1.1735788926019.197344872; _meta_facebookTag_sync=1735788926019; _meta_googleGtag_ga_library_loaded=1735788926021; _ga=GA1.1.1252726110.1735788926; _ga_G64531DSC4=GS1.1.1735788926.1.0.1735789133.60.0.0; _meta_googleGtag_ga=GA1.1.1252726110.1735788926; wdctx=v5.05bN7cUkT7u3zONiGSqLI-1RC8ruYfFr5TEmMeip6Q9d_yhFL0IKH-_L4IeY-VJKkvlq1hwYTQsCWoOPkGj7quE64XcUzEUDwm6WpjRGbN54yn41UaDkvMM2RS8GihhEARm8-nRQhLx0CYTqe2uBsMeZjkei9jKInSRNESvQNG1p9iw_fEQyRQyfYaSEg3ZzODaKi433QjcQbj9c9H0J8JxehecjYruSGMvACZ_XPQuX0g.WvQZlFTNThC2v1IX4P5CBQ.Qo00EB08O6o; _meta_googleGtag_session_id=1736407579; _meta_googleGtag_ga_session_count=6; datadome=tgYyX0n_Sn9IZRhwwwhHWJmwOxS6zwVB87pbbrKgmTNCA7gczky8is0Y1g68xu_4PwDScDECCbV929Pp2WyXKHk0~a9MfhstxSgmzYyYxFJNj9M03w0DlFAD1eMVqDoW; __gads=ID=102a949be5e9a3cb:T=1736407609:RT=1736407609:S=ALNI_MaSn4fsiA2vQnFlGMtRJYDSjLre-w; __gpi=UID=00000fb1ef8e0f7b:T=1736407609:RT=1736407609:S=ALNI_Ma7uTrhokPf16I2fHBMl7pkaIznug; __eoi=ID=7fe629eab8c63dff:T=1736407609:RT=1736407609:S=AA-AfjZF5NyOFdVyXeHerD4D4iWW");
             }
@@ -161,9 +166,8 @@ public class BasicDataController {
             int responseCode = connection.getResponseCode();
             System.out.println("Response Code: " + responseCode);
 
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-                // 返回非 200 的响应时，抛出异常
-                throw new Exception("HTTP error! Status: " + responseCode);
+            if (responseCode != 200) {
+                return error(GET_CAGETORY_NOT_EXISTS);
             }
 
             // 读取响应内容
@@ -174,10 +178,7 @@ public class BasicDataController {
                 response.append(inputLine);
             }
             in.close();
-
-            // 输出返回的内容
-            System.out.println(response.toString());
-            return response.toString();
+            return success(response.toString());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -185,7 +186,7 @@ public class BasicDataController {
         return null;
     }
 
-    public String getOneProduct(String sourceUrl) {
+    public CommonResult<String> getOneProduct(String sourceUrl) {
         try {
             // 创建 URL 对象
             URL targetUrl = new URL(sourceUrl);
@@ -224,9 +225,8 @@ public class BasicDataController {
             int responseCode = connection.getResponseCode();
             System.out.println("Response Code: " + responseCode);
 
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-                // 返回非 200 的响应时，抛出异常
-                throw new Exception("HTTP error! Status: " + responseCode);
+            if (responseCode != 200) {
+                return error(GET_CAGETORY_NOT_EXISTS);
             }
 
             // 读取响应内容
@@ -240,7 +240,7 @@ public class BasicDataController {
 
             // 输出返回的内容
             System.out.println(response.toString());
-            return response.toString();
+            return success(response.toString());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -348,8 +348,9 @@ public class BasicDataController {
 
             // 获取响应码
             int responseCode = connection.getResponseCode();
-            System.out.println("Response Code: " + responseCode);
-
+            if (responseCode != 200) {
+                throw exception(GET_CAGETORY_NOT_EXISTS);
+            }
             // 可选：读取响应内容（如果需要）
             BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             String inputLine;

@@ -20,6 +20,7 @@ public interface ProductUrlMapper extends BaseMapperX<ProductUrlDO> {
     default PageResult<ProductUrlDO> selectPage(ProductUrlPageReqVO reqVO) {
         return selectPage(reqVO, new LambdaQueryWrapperX<ProductUrlDO>()
                 .eqIfPresent(ProductUrlDO::getUrl, reqVO.getUrl())
+                .eq(ProductUrlDO::getProcessFlag,0)
                 .betweenIfPresent(ProductUrlDO::getCreateTime, reqVO.getCreateTime())
                 .orderByDesc(ProductUrlDO::getId));
     }
