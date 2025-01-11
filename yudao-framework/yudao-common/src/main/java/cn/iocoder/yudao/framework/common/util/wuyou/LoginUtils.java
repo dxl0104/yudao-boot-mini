@@ -13,7 +13,7 @@ import java.net.URL;
  * 获取无忧cookie
  */
 public class LoginUtils {
-    public static CookieResponse getLoginUser(String userName, String pwd) {
+    public static CookieResponse getCookie(String userName, String pwd) {
         try {
             // 设置目标 URL
             String targetUrl = "http://38.147.189.30:5000/signin";
@@ -30,7 +30,7 @@ public class LoginUtils {
             connection.setDoOutput(true);
 
             // 构造 JSON 数据
-            String jsonInputString = "{\"username\": \"" + userName + "\", \"password\": \"" + pwd + "\"}";
+            String jsonInputString = "{\"username\": \"" + userName + "\", \"password\": \"" +pwd + "\"}";
 
             // 向服务器发送 POST 数据
             try (OutputStream os = connection.getOutputStream()) {

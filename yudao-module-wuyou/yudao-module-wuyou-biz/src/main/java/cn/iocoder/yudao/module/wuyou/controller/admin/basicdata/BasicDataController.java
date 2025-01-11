@@ -2,13 +2,18 @@ package cn.iocoder.yudao.module.wuyou.controller.admin.basicdata;
 
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.common.pojo.CookieResponse;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.common.util.wuyou.LoginUtils;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.*;
+import cn.iocoder.yudao.module.wuyou.controller.admin.keyword.vo.KeyWordQueryVO;
+import cn.iocoder.yudao.module.wuyou.controller.admin.keyword.vo.KeywordPageReqVO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.basicdata.BasicDataDO;
-import cn.iocoder.yudao.module.wuyou.dal.dataobject.producturl.ProductUrlDO;
+import cn.iocoder.yudao.module.wuyou.dal.dataobject.keyword.KeywordDO;
+import cn.iocoder.yudao.module.wuyou.dal.mysql.keyword.KeywordMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.producturl.ProductUrlMapper;
 import cn.iocoder.yudao.module.wuyou.service.basicdata.BasicDataService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,14 +33,15 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.EXPORT;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.error;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
-import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.DEPT_NOT_FOUND;
 import static cn.iocoder.yudao.module.wuyou.enums.ErrorCodeConstants.GET_CAGETORY_NOT_EXISTS;
 import static cn.iocoder.yudao.module.wuyou.enums.ErrorCodeConstants.PRODUCT_NOT_EXISTS;
 
@@ -51,6 +57,9 @@ public class BasicDataController {
 
     @Resource
     private ProductUrlMapper productUrlMapper;
+
+    @Resource
+    private KeywordMapper keywordMapper;
 
     @PostMapping("/create")
     @Operation(summary = "创建无忧基础数据")
@@ -119,13 +128,13 @@ public class BasicDataController {
 
     @PostMapping("/getOneProductDetail")
     public CommonResult getOneProductDetail(@RequestBody BasicDataRqeCategoryVO basicDataRqeCategoryVO) {
-        log.info("返回商品详情数据{}",getOneProduct(basicDataRqeCategoryVO.getSourceUrl(),basicDataRqeCategoryVO.getCookie()));
-        return getOneProduct(basicDataRqeCategoryVO.getSourceUrl(),basicDataRqeCategoryVO.getCookie());
+        log.info("返回商品详情数据{}", getOneProduct(basicDataRqeCategoryVO.getSourceUrl(), basicDataRqeCategoryVO.getCookie()));
+        return getOneProduct(basicDataRqeCategoryVO.getSourceUrl(), basicDataRqeCategoryVO.getCookie());
     }
 
     @PostMapping("/getCategoryData")
     public CommonResult<String> getCategoryData(@RequestBody BasicDataRqeCategoryVO basicDataRqeCategoryVO) {
-        log.info("返回数据{}",getCategoryData(basicDataRqeCategoryVO.getSourceUrl(), basicDataRqeCategoryVO.getP(), null));
+        log.info("返回数据{}", getCategoryData(basicDataRqeCategoryVO.getSourceUrl(), basicDataRqeCategoryVO.getP(), null));
         return getCategoryData(basicDataRqeCategoryVO.getSourceUrl(), basicDataRqeCategoryVO.getP(), null);
     }
 
@@ -193,7 +202,7 @@ public class BasicDataController {
         return null;
     }
 
-    public CommonResult<String> getOneProduct(String sourceUrl,String cookie) {
+    public CommonResult<String> getOneProduct(String sourceUrl, String cookie) {
         try {
             // 创建 URL 对象
             URL targetUrl = new URL(sourceUrl);
@@ -209,8 +218,7 @@ public class BasicDataController {
             //cookie必须有 没有的话无法请求
             if (cookie != null && "".equals(cookie)) {
                 connection.setRequestProperty("cookie", cookie);
-            }
-            else {
+            } else {
                 connection.setRequestProperty("cookie", "_cmuid=90205531-ec74-4b4c-8a95-49986067b911; _gcl_au=1.1.640494160.1735788908; gdpr_permission_given=1; __gfp_64b=-TURNEDOFF; OptOutOnRequest=groups=googleAnalytics:1,googleAdvertisingProducts:1,tikTok:1,allegroAdsNetwork:1,facebook:1; _fbp=fb.1.1735788926019.197344872; _meta_facebookTag_sync=1735788926019; _meta_googleGtag_ga_library_loaded=1735788926021; _ga=GA1.1.1252726110.1735788926; _ga_G64531DSC4=GS1.1.1735788926.1.0.1735789133.60.0.0; _meta_googleGtag_ga=GA1.1.1252726110.1735788926; _meta_googleGtag_ga_session_count=5; _meta_googleGtag_session_id=1736322260; wdctx=v5.Imv6Pch56tZ9ZxjmE-nzTloXk04e0xXtNG4qaDuxDG-TKsN_hT_cdSRwD-1azQNPXnexzOHCKV-j5Dgl5BKqYkxsBaMwyW68-IPli-MES5HRhyTBdcpHti-h-PFLACvyh4SIY1YJl3C2Lua6NwImZHeb-0rEcv17pvF1ujEQOgUOyKTZvwRADJzkK8_fAU6X3azsb8YCqqxIXN3FZyoUZkj4NKzWRsH2jUKxw5jiDy0.WvQZlFTNThC2v1IX4P5CBQ.V7IfZOTqukk; datadome=6r4OatSL98E4HTsnniwC72b~tlgFgBjjfazW~5Rvz823f7uwe_DGaTOJqlurKcg2FMUAIFClmQXF~R6SWqo6C9zU~zYUOK8IhixDqvoA3zAQ5eWfz574GfFjJzrz5N1O");
             }
             connection.setRequestProperty("dpr", "1");
@@ -383,5 +391,147 @@ public class BasicDataController {
         }
         return null;
     }
+
+    @PostMapping("/query")
+    @Operation(summary = "查询无忧侵权词分页数据")
+    public String query(@RequestBody KeyWordQueryVO keyWordQueryVO) {
+        try {
+            // 请求URL
+            URL url = new URL("https://www.51selling.com/sale/ShelvesInfringementKeyword");
+
+            // 打开连接
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            // 设置请求方法为 POST
+            connection.setRequestMethod("POST");
+            // 设置请求头
+            connection.setRequestProperty("Accept", "application/json, text/javascript, */*; q=0.01");
+            connection.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6");
+            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+            connection.setRequestProperty("Cookie", "SessID=xe2gyencjg134o0z3anbhyan; Hm_lvt_97745fd517881ba15b518da92c105831=1736093172,1736570997,1736579851,1736605293; HMACCOUNT=0D20F43D5F4808BE; Hm_lpvt_97745fd517881ba15b518da92c105831=1736613877; usrid=4+EcjTy+fLo=; tk=126453f7-d644-42c8-a835-40aad9f0b258");
+            connection.setRequestProperty("Origin", "https://www.51selling.com");
+            connection.setRequestProperty("Referer", "https://www.51selling.com/sale/shelvesinfringementkeyword");
+            connection.setRequestProperty("Sec-CH-UA", "\"Microsoft Edge\";v=\"131\", \"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"");
+            connection.setRequestProperty("Sec-CH-UA-Mobile", "?0");
+            connection.setRequestProperty("Sec-CH-UA-Platform", "\"Windows\"");
+            connection.setRequestProperty("Sec-Fetch-Dest", "empty");
+            connection.setRequestProperty("Sec-Fetch-Mode", "cors");
+            connection.setRequestProperty("Sec-Fetch-Site", "same-origin");
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0");
+            connection.setRequestProperty("X-Requested-With", "XMLHttpRequest");
+
+            // 允许输入输出流
+            connection.setDoOutput(true);
+
+            // 请求体数据
+            String data = "pageIndex=" + keyWordQueryVO.getPageIndex() + "&pageSize=" + keyWordQueryVO.getPageSize() + "&orderBy=Id+desc&search=%E2%80%A0%E2%80%A1%E2%80%A0%E2%80%A1%E4%BE%B5%E6%9D%83%E5%85%B3%E9%94%AE%E8%AF%8D%E2%80%A0%E6%B7%BB%E5%8A%A0%E6%97%B6%E9%97%B4%E2%80%A1%E2%80%A0%E2%80%A1%E2%80%A0";
+
+            // 写入请求体
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = data.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
+
+            // 获取响应码
+            int statusCode = connection.getResponseCode();
+            System.out.println("Response Code: " + statusCode);
+
+            // 获取响应内容
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                System.out.println("Response Body: " + response.toString());
+                // 关闭连接
+                connection.disconnect();
+                return response.toString();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @PostMapping("/saveKey")
+    @Operation(summary = "查询无忧侵权词分页数据")
+    public String saveKeyWord() {
+        String targetUrl = "https://www.51selling.com/sale/ShelvesInfringementKeyword/Edit";
+        String cookie = "SessID=xe2gyencjg134o0z3anbhyan; Hm_lvt_97745fd517881ba15b518da92c105831=1736093172,1736570997,1736579851,1736605293; HMACCOUNT=0D20F43D5F4808BE; Hm_lpvt_97745fd517881ba15b518da92c105831=1736615808; usrid=nYas788ClX4=; tk=ba2f775b-4088-4df1-b0e9-209b10a908e4";
+        String referer = "https://www.51selling.com/sale/ShelvesInfringementKeyword/Edit?ids=0";
+        String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0";
+
+        try {
+            // 分页循环请求
+            for (int i = 1; i <= 119; i++) {
+                // 设置分页参数
+                KeywordPageReqVO keywordPageReqVO = new KeywordPageReqVO();
+                keywordPageReqVO.setPageSize(100);
+                keywordPageReqVO.setPageNo(i);
+
+                // 获取分页数据
+                PageResult<KeywordDO> keywordDOPageResult = keywordMapper.selectPage(keywordPageReqVO);
+                List<KeywordDO> list = keywordDOPageResult.getList();
+
+                // 拼接数据
+                String data = "Platform=0&InfringementKeyword=" +
+                        list.stream()
+                                .map(keywordDO -> keywordDO.getInfringementKeyword())
+                                .collect(Collectors.joining("%0A")) + // 拼接关键字并使用 %0A 分隔
+                        "&Id=0";
+
+                // 创建 URL 和 HttpURLConnection
+                URL url = new URL(targetUrl);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+                // 设置请求方法和请求头
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("accept", "application/json, text/javascript, */*; q=0.01");
+                connection.setRequestProperty("accept-language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6");
+                connection.setRequestProperty("content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+                connection.setRequestProperty("cookie", cookie);
+                connection.setRequestProperty("origin", "https://www.51selling.com");
+                connection.setRequestProperty("referer", referer);
+                connection.setRequestProperty("sec-ch-ua", "\"Microsoft Edge\";v=\"131\", \"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"");
+                connection.setRequestProperty("sec-ch-ua-mobile", "?0");
+                connection.setRequestProperty("sec-ch-ua-platform", "\"Windows\"");
+                connection.setRequestProperty("sec-fetch-dest", "empty");
+                connection.setRequestProperty("sec-fetch-mode", "cors");
+                connection.setRequestProperty("sec-fetch-site", "same-origin");
+                connection.setRequestProperty("user-agent", userAgent);
+                connection.setRequestProperty("x-requested-with", "XMLHttpRequest");
+
+                // 启用输出流
+                connection.setDoOutput(true);
+
+                // 写入请求参数
+                try (OutputStream os = connection.getOutputStream()) {
+                    byte[] input = data.getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+
+                // 获取响应代码
+                int responseCode = connection.getResponseCode();
+                log.info("Response Code: " + responseCode);
+
+                // 读取响应内容
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                    String inputLine;
+                    StringBuilder response = new StringBuilder();
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                    // 输出响应内容
+                    log.info("Response Body: " + response.toString());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error occurred while processing the request", e);
+            return "Error occurred: " + e.getMessage();
+        }
+        return "Success";
+    }
+
 
 }

@@ -7,4 +7,5 @@ public interface ErrorCodeConstants {
     ErrorCode BASIC_DATA_NOT_EXISTS = new ErrorCode(10002, "无忧基础数据不存在");
     ErrorCode PRODUCT_URL_NOT_EXISTS = new ErrorCode(10003, "商品url列表不存在");
     ErrorCode PRODUCT_NOT_EXISTS = new ErrorCode(10004, "商品404");
+    ErrorCode KEYWORD_NOT_EXISTS = new ErrorCode(10005, "无忧侵权词不存在");
 }
