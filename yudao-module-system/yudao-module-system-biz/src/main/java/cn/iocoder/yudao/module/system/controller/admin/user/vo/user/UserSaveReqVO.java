@@ -64,6 +64,8 @@ public class UserSaveReqVO {
     @DiffLogField(name = "用户头像")
     private String avatar;
 
+    private String cookie;
+
     // ========== 仅【创建】时，需要传递的字段 ==========
 
     @Schema(description = "密码", requiredMode = Schema.RequiredMode.REQUIRED, example = "123456")

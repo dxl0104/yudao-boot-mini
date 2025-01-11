@@ -7,10 +7,13 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
+import cn.iocoder.yudao.framework.security.core.LoginUser;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.system.controller.admin.user.vo.user.*;
 import cn.iocoder.yudao.module.system.convert.user.UserConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.module.system.enums.common.SexEnum;
 import cn.iocoder.yudao.module.system.service.dept.DeptService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
@@ -45,6 +48,8 @@ public class UserController {
     private AdminUserService userService;
     @Resource
     private DeptService deptService;
+    @Resource
+    private AdminUserMapper userMapper;
 
     @PostMapping("/create")
     @Operation(summary = "新增用户")
@@ -111,6 +116,28 @@ public class UserController {
         Map<Long, DeptDO> deptMap = deptService.getDeptMap(
                 convertList(list, AdminUserDO::getDeptId));
         return success(UserConvert.INSTANCE.convertSimpleList(list, deptMap));
+    }
+
+    @GetMapping("/getCurrentCookie")
+    @Operation(summary = "获得当前用户的cookie")
+    public CommonResult<String> getCurrentCookie() {
+        LoginUser user = SecurityFrameworkUtils.getLoginUser();
+        AdminUserDO user1 = userService.getUser(user.getId());
+        if (user1 == null) {
+            return success("");
+        }
+        return success(user1.getCookie());
+    }
+    @PostMapping("/setCurrentCookie")
+    @Operation(summary = "设置当前用户的cookie")
+    public CommonResult<Boolean> setCurrentCookie(@RequestBody UserCookieVO reqVO) {
+        LoginUser user = SecurityFrameworkUtils.getLoginUser();
+        AdminUserDO user1 = userService.getUser(user.getId());
+        if (user1 != null) {
+            user1.setCookie(reqVO.getCookie());
+            userMapper.updateById(user1);
+        }
+        return success(true);
     }
 
     @GetMapping("/get")

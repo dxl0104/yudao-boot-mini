@@ -93,4 +93,6 @@ public class AdminUserDO extends TenantBaseDO {
      */
     private LocalDateTime loginDate;
 
+    private String cookie;
+
 }

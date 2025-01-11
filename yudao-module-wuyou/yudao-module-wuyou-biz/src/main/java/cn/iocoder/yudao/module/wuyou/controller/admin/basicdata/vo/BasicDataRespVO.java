@@ -5,6 +5,7 @@ import com.alibaba.excel.annotation.ExcelProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Schema(description = "管理后台 - 无忧基础数据 Response VO")
@@ -24,13 +25,10 @@ public class BasicDataRespVO {
     @ExcelProperty("url")
     private String url;
 
-    @Schema(description = "json数据", example = "22222")
-    @ExcelProperty("json数据")
-    private String dataJson;
 
     @Schema(description = "快递费")
     @ExcelProperty("快递费")
-    private Integer delivery;
+    private BigDecimal delivery;
 
     @Schema(description = "分类")
     @ExcelProperty("分类")

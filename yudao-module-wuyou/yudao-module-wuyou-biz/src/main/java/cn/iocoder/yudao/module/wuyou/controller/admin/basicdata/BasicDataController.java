@@ -8,6 +8,8 @@ import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.*;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.basicdata.BasicDataDO;
+import cn.iocoder.yudao.module.wuyou.dal.dataobject.producturl.ProductUrlDO;
+import cn.iocoder.yudao.module.wuyou.dal.mysql.producturl.ProductUrlMapper;
 import cn.iocoder.yudao.module.wuyou.service.basicdata.BasicDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,6 +37,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.error;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.DEPT_NOT_FOUND;
 import static cn.iocoder.yudao.module.wuyou.enums.ErrorCodeConstants.GET_CAGETORY_NOT_EXISTS;
+import static cn.iocoder.yudao.module.wuyou.enums.ErrorCodeConstants.PRODUCT_NOT_EXISTS;
 
 @Tag(name = "管理后台 - 无忧基础数据")
 @RestController
@@ -45,6 +48,9 @@ public class BasicDataController {
 
     @Resource
     private BasicDataService basicDataService;
+
+    @Resource
+    private ProductUrlMapper productUrlMapper;
 
     @PostMapping("/create")
     @Operation(summary = "创建无忧基础数据")
@@ -113,6 +119,7 @@ public class BasicDataController {
 
     @PostMapping("/getOneProductDetail")
     public CommonResult getOneProductDetail(@RequestBody BasicDataRqeCategoryVO basicDataRqeCategoryVO) {
+        log.info("返回商品详情数据{}",getOneProduct(basicDataRqeCategoryVO.getSourceUrl(),basicDataRqeCategoryVO.getCookie()));
         return getOneProduct(basicDataRqeCategoryVO.getSourceUrl(),basicDataRqeCategoryVO.getCookie());
     }
 
@@ -228,7 +235,7 @@ public class BasicDataController {
 
             // 获取响应码
             int responseCode = connection.getResponseCode();
-            System.out.println("Response Code: " + responseCode);
+            System.out.println("商品详情 Response Code: " + responseCode);
 
             if (responseCode != 200) {
                 return error(GET_CAGETORY_NOT_EXISTS);
@@ -248,9 +255,14 @@ public class BasicDataController {
             return success(response.toString());
 
         } catch (Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
+            //删除404的数据
+//            ProductUrlDO productUrlDO = productUrlMapper.selectOne("url", sourceUrl);
+//            if (productUrlDO!=null){
+//                productUrlMapper.deleteById(productUrlDO);
+//            }
+            return error(PRODUCT_NOT_EXISTS);
         }
-        return null;
     }
 
     public String SaveProduct(String html, String sourceUrl, Integer sourcePlatform) {
