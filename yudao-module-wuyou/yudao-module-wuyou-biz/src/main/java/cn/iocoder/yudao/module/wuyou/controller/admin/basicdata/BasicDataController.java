@@ -107,13 +107,13 @@ public class BasicDataController {
     }
 
     @PostMapping("/saveProduct")
-    public CommonResult Save(@RequestBody BasicDataReqVO basicDataReqVO) {
-        return success(SaveProduct(basicDataReqVO.getHtml(), basicDataReqVO.getSourceUrl(), basicDataReqVO.getSourcePlatform()));
+    public String Save(@RequestBody BasicDataReqVO basicDataReqVO) {
+        return SaveProduct(basicDataReqVO.getHtml(), basicDataReqVO.getSourceUrl(), basicDataReqVO.getSourcePlatform());
     }
 
     @PostMapping("/getOneProductDetail")
     public CommonResult getOneProductDetail(@RequestBody BasicDataRqeCategoryVO basicDataRqeCategoryVO) {
-        return getOneProduct(basicDataRqeCategoryVO.getSourceUrl());
+        return getOneProduct(basicDataRqeCategoryVO.getSourceUrl(),basicDataRqeCategoryVO.getCookie());
     }
 
     @PostMapping("/getCategoryData")
@@ -186,7 +186,7 @@ public class BasicDataController {
         return null;
     }
 
-    public CommonResult<String> getOneProduct(String sourceUrl) {
+    public CommonResult<String> getOneProduct(String sourceUrl,String cookie) {
         try {
             // 创建 URL 对象
             URL targetUrl = new URL(sourceUrl);
@@ -200,7 +200,12 @@ public class BasicDataController {
             connection.setRequestProperty("accept-language", "zh-CN,zh;q=0.9,en;q=0.8");
             connection.setRequestProperty("content-type", "application/json");
             //cookie必须有 没有的话无法请求
-            connection.setRequestProperty("cookie", "_cmuid=90205531-ec74-4b4c-8a95-49986067b911; _gcl_au=1.1.640494160.1735788908; gdpr_permission_given=1; __gfp_64b=-TURNEDOFF; OptOutOnRequest=groups=googleAnalytics:1,googleAdvertisingProducts:1,tikTok:1,allegroAdsNetwork:1,facebook:1; _fbp=fb.1.1735788926019.197344872; _meta_facebookTag_sync=1735788926019; _meta_googleGtag_ga_library_loaded=1735788926021; _ga=GA1.1.1252726110.1735788926; _ga_G64531DSC4=GS1.1.1735788926.1.0.1735789133.60.0.0; _meta_googleGtag_ga=GA1.1.1252726110.1735788926; _meta_googleGtag_ga_session_count=5; _meta_googleGtag_session_id=1736322260; wdctx=v5.Imv6Pch56tZ9ZxjmE-nzTloXk04e0xXtNG4qaDuxDG-TKsN_hT_cdSRwD-1azQNPXnexzOHCKV-j5Dgl5BKqYkxsBaMwyW68-IPli-MES5HRhyTBdcpHti-h-PFLACvyh4SIY1YJl3C2Lua6NwImZHeb-0rEcv17pvF1ujEQOgUOyKTZvwRADJzkK8_fAU6X3azsb8YCqqxIXN3FZyoUZkj4NKzWRsH2jUKxw5jiDy0.WvQZlFTNThC2v1IX4P5CBQ.V7IfZOTqukk; datadome=6r4OatSL98E4HTsnniwC72b~tlgFgBjjfazW~5Rvz823f7uwe_DGaTOJqlurKcg2FMUAIFClmQXF~R6SWqo6C9zU~zYUOK8IhixDqvoA3zAQ5eWfz574GfFjJzrz5N1O");
+            if (cookie != null && "".equals(cookie)) {
+                connection.setRequestProperty("cookie", cookie);
+            }
+            else {
+                connection.setRequestProperty("cookie", "_cmuid=90205531-ec74-4b4c-8a95-49986067b911; _gcl_au=1.1.640494160.1735788908; gdpr_permission_given=1; __gfp_64b=-TURNEDOFF; OptOutOnRequest=groups=googleAnalytics:1,googleAdvertisingProducts:1,tikTok:1,allegroAdsNetwork:1,facebook:1; _fbp=fb.1.1735788926019.197344872; _meta_facebookTag_sync=1735788926019; _meta_googleGtag_ga_library_loaded=1735788926021; _ga=GA1.1.1252726110.1735788926; _ga_G64531DSC4=GS1.1.1735788926.1.0.1735789133.60.0.0; _meta_googleGtag_ga=GA1.1.1252726110.1735788926; _meta_googleGtag_ga_session_count=5; _meta_googleGtag_session_id=1736322260; wdctx=v5.Imv6Pch56tZ9ZxjmE-nzTloXk04e0xXtNG4qaDuxDG-TKsN_hT_cdSRwD-1azQNPXnexzOHCKV-j5Dgl5BKqYkxsBaMwyW68-IPli-MES5HRhyTBdcpHti-h-PFLACvyh4SIY1YJl3C2Lua6NwImZHeb-0rEcv17pvF1ujEQOgUOyKTZvwRADJzkK8_fAU6X3azsb8YCqqxIXN3FZyoUZkj4NKzWRsH2jUKxw5jiDy0.WvQZlFTNThC2v1IX4P5CBQ.V7IfZOTqukk; datadome=6r4OatSL98E4HTsnniwC72b~tlgFgBjjfazW~5Rvz823f7uwe_DGaTOJqlurKcg2FMUAIFClmQXF~R6SWqo6C9zU~zYUOK8IhixDqvoA3zAQ5eWfz574GfFjJzrz5N1O");
+            }
             connection.setRequestProperty("dpr", "1");
             connection.setRequestProperty("priority", "u=1, i");
             connection.setRequestProperty("referer", "https://allegro.pl/");
@@ -254,7 +259,7 @@ public class BasicDataController {
             String url = "https://www.51selling.com/collect/CollectBox/SaveProduct";
 
             // Cookie信息
-            String cookie = "SessID=cviktd0txmsprh1lsrivoo44; usrid=4+EcjTy+fLo=; tk=f76b4cd9-9230-43c7-8100-bdd432de61fc";
+            String cookie = "SessID=cviktd0txmsprh1lsrivoo44; Hm_lvt_97745fd517881ba15b518da92c105831=1736502045; HMACCOUNT=897B9D6B06DDC7CD; Hm_lpvt_97745fd517881ba15b518da92c105831=1736502085; usrid=nYas788ClX4=; tk=45ac7cbc-8916-4a0d-9655-fbecaffee1e6";
 
             // 请求的JSON数据
             String postData = "{\"Html\":\"" + html + "\",\"sourceUrl\":\"" + sourceUrl + "\",\"SourcePlatform\":\"" + sourcePlatform + "\"}";

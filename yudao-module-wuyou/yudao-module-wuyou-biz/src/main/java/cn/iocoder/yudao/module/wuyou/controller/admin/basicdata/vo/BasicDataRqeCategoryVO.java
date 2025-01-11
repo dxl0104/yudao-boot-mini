@@ -6,4 +6,5 @@ import lombok.Data;
 public class BasicDataRqeCategoryVO {
     private String sourceUrl;
     private Integer p;
+    private String cookie;
 }
