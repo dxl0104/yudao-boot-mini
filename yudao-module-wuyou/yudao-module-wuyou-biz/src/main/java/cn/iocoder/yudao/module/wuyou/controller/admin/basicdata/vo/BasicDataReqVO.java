@@ -9,4 +9,5 @@ public class BasicDataReqVO {
     private String sourceUrl;
     private Integer sourcePlatform;
     private String delivery;
+    private String cookie;
 }

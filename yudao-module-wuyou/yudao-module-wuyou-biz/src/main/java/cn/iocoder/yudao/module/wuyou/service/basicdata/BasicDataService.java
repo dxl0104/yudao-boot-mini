@@ -6,6 +6,7 @@ import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataSave
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.basicdata.BasicDataDO;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * 无忧基础数据 Service 接口
@@ -51,5 +52,7 @@ public interface BasicDataService {
      * @return 无忧基础数据分页
      */
     PageResult<BasicDataDO> getBasicDataPage(BasicDataPageReqVO pageReqVO);
+
+    void  importByIdS(List<String> ids);
 
 }

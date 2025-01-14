@@ -51,6 +51,8 @@ public class UserController {
     @Resource
     private AdminUserMapper userMapper;
 
+
+
     @PostMapping("/create")
     @Operation(summary = "新增用户")
     @PreAuthorize("@ss.hasPermission('system:user:create')")
@@ -137,6 +139,14 @@ public class UserController {
             user1.setCookie(reqVO.getCookie());
             userMapper.updateById(user1);
         }
+        return success(true);
+    }
+
+    @PostMapping("/login")
+    @Operation(summary = "设置当前用户的cookie")
+    public CommonResult<Boolean> login(@RequestBody UserCookieVO reqVO) {
+        LoginUser user = SecurityFrameworkUtils.getLoginUser();
+        //先判断redis中是否存在  如果存在就直接拿redis中的
         return success(true);
     }
 

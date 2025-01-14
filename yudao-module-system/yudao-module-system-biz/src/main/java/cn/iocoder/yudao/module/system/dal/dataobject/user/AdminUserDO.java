@@ -95,4 +95,8 @@ public class AdminUserDO extends TenantBaseDO {
 
     private String cookie;
 
+    private String erpName;
+
+    private String erpPwd;
+
 }

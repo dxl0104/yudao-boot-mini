@@ -45,4 +45,8 @@ public class AdminUserRespDTO {
      */
     private String avatar;
 
+    private String erpName;
+
+    private String eprPwd;
+
 }

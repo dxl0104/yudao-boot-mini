@@ -5,4 +5,6 @@ import lombok.Data;
 @Data
 public class UserCookieVO {
     private String cookie;
+    private String userName;
+    private String pwd;
 }

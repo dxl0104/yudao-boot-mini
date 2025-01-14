@@ -123,7 +123,7 @@ public class BasicDataController {
 
     @PostMapping("/saveProduct")
     public String Save(@RequestBody BasicDataReqVO basicDataReqVO) {
-        return SaveProduct(basicDataReqVO.getHtml(), basicDataReqVO.getSourceUrl(), basicDataReqVO.getSourcePlatform());
+        return SaveProduct(basicDataReqVO.getHtml(), basicDataReqVO.getSourceUrl(), basicDataReqVO.getSourcePlatform(),basicDataReqVO.getCookie());
     }
 
     @PostMapping("/getOneProductDetail")
@@ -273,13 +273,11 @@ public class BasicDataController {
         }
     }
 
-    public String SaveProduct(String html, String sourceUrl, Integer sourcePlatform) {
+    public String SaveProduct(String html, String sourceUrl, Integer sourcePlatform,String cookie) {
         try {
             // URL地址
             String url = "https://www.51selling.com/collect/CollectBox/SaveProduct";
 
-            // Cookie信息
-            String cookie = "SessID=cviktd0txmsprh1lsrivoo44; Hm_lvt_97745fd517881ba15b518da92c105831=1736502045; HMACCOUNT=897B9D6B06DDC7CD; Hm_lpvt_97745fd517881ba15b518da92c105831=1736502085; usrid=nYas788ClX4=; tk=45ac7cbc-8916-4a0d-9655-fbecaffee1e6";
 
             // 请求的JSON数据
             String postData = "{\"Html\":\"" + html + "\",\"sourceUrl\":\"" + sourceUrl + "\",\"SourcePlatform\":\"" + sourcePlatform + "\"}";

@@ -25,7 +25,6 @@ public class BasicDataRespVO {
     @ExcelProperty("url")
     private String url;
 
-
     @Schema(description = "快递费")
     @ExcelProperty("快递费")
     private BigDecimal delivery;
