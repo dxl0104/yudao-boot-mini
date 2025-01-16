@@ -1,31 +1,27 @@
 package cn.iocoder.yudao.module.wuyou.service.basicdata;
 
 import cn.iocoder.yudao.framework.common.pojo.CookieDatedRes;
-import cn.iocoder.yudao.framework.common.pojo.CookieResponse;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-import cn.iocoder.yudao.framework.common.util.wuyou.LoginUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
-import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataPageReqVO;
-import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataSaveReqVO;
+import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.*;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.basicdata.BasicDataDO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.producturl.ProductUrlDO;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.basicdata.BasicDataMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.producturl.ProductUrlMapper;
 import cn.iocoder.yudao.module.wuyou.utils.ErpUtils;
 import cn.iocoder.yudao.module.wuyou.utils.RedisUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-import static cn.iocoder.yudao.framework.common.pojo.CommonResult.error;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.wuyou.enums.ErrorCodeConstants.*;
+import static cn.iocoder.yudao.module.wuyou.enums.ErrorCodeConstants.BASIC_DATA_NOT_EXISTS;
 import static cn.iocoder.yudao.module.wuyou.utils.ErpUtils.reGetCookie;
 
 
@@ -147,14 +143,39 @@ public class BasicDataServiceImpl implements BasicDataService {
     }
 
     // 处理导入操作
-    private CookieDatedRes performImport(List<String> ids,String cookie) {
+    private BasicDataImportVO performImport(List<String> ids, String cookie) {
         Integer successCount = 0;
+        Integer errorCount = 0;
+        BasicDataImportVO basicDataImportVO = new BasicDataImportVO();
+        ArrayList<ImportSuccessRes> importSuccessResList = new ArrayList<>();
+        ArrayList<ImportErrorRes> importErrorResList = new ArrayList<>();
         // 这里是导入操作的实现逻辑
         List<BasicDataDO> list = basicDataMapper.selectList(BasicDataDO::getId, ids);
         for (BasicDataDO basicDataDO : list) {
             CookieDatedRes cookieDatedRes = ErpUtils.saveProduct(basicDataDO.getDataJson(), basicDataDO.getUrl(), 1, cookie);
+            //保存成功
+            if (cookieDatedRes.isSuccess()){
+                successCount++;
+                ImportSuccessRes successRes = new ImportSuccessRes();
+                successRes.setId(basicDataDO.getId());
+                successRes.setUrl(basicDataDO.getUrl());
+                importSuccessResList.add(successRes);
+            }
+            else {
+                errorCount++;
+                ImportErrorRes importErrorRes = new ImportErrorRes();
+                importErrorRes.setId(basicDataDO.getId());
+                importErrorRes.setUrl(basicDataDO.getUrl());
+                importErrorRes.setCookieDatedRes(cookieDatedRes);
+                importErrorResList.add(importErrorRes);
+            }
         }
-        return null;
+        basicDataImportVO.setSuccessCount(successCount);
+        basicDataImportVO.setErrorCount(errorCount);
+        basicDataImportVO.setTotalCount(list.size());
+        basicDataImportVO.setSuccessResList(importSuccessResList);
+        basicDataImportVO.setErrorDetailList(importErrorResList);
+        return basicDataImportVO;
     }
 
 }
