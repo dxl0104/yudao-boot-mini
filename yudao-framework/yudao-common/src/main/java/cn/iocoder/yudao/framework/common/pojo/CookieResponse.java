@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class CookieResponse {
-    private String cookie;
+    private String cookies;
     private Boolean isSuccess;
     private String message;
 }

@@ -47,6 +47,6 @@ public class AdminUserRespDTO {
 
     private String erpName;
 
-    private String eprPwd;
+    private String erpPwd;
 
 }

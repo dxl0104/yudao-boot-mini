@@ -1,60 +1,72 @@
 package cn.iocoder.yudao.framework.common.pojo;
 
 
+import com.alibaba.fastjson.annotation.JSONField;
 
 public class CookieDatedRes {
-    private boolean IsSuccess;
-    private String Data;
-    private ResponseError ResponseError;
-    private String CheckedKey;
-    private String Message;
-    private String Url;
+    @JSONField(name = "IsSuccess")
+    private boolean isSuccess;
+
+    @JSONField(name = "Data")
+    private String data;
+
+    @JSONField(name = "ResponseError")
+    private ResponseError responseError;
+
+    @JSONField(name = "CheckedKey")
+    private String checkedKey;
+
+    @JSONField(name = "Message")
+    private String message;
+
+    @JSONField(name = "Url")
+    private String url;
 
     public boolean isSuccess() {
-        return IsSuccess;
+        return isSuccess;
     }
 
     public void setSuccess(boolean success) {
-        IsSuccess = success;
+        isSuccess = success;
     }
 
     public String getData() {
-        return Data;
+        return data;
     }
 
     public void setData(String data) {
-        Data = data;
+        this.data = data;
     }
 
-    public cn.iocoder.yudao.framework.common.pojo.ResponseError getResponseError() {
-        return ResponseError;
+    public ResponseError getResponseError() {
+        return responseError;
     }
 
-    public void setResponseError(cn.iocoder.yudao.framework.common.pojo.ResponseError responseError) {
-        ResponseError = responseError;
+    public void setResponseError(ResponseError responseError) {
+        this.responseError = responseError;
     }
 
     public String getCheckedKey() {
-        return CheckedKey;
+        return checkedKey;
     }
 
     public void setCheckedKey(String checkedKey) {
-        CheckedKey = checkedKey;
+        this.checkedKey = checkedKey;
     }
 
     public String getMessage() {
-        return Message;
+        return message;
     }
 
     public void setMessage(String message) {
-        Message = message;
+        this.message = message;
     }
 
     public String getUrl() {
-        return Url;
+        return url;
     }
 
     public void setUrl(String url) {
-        Url = url;
+        this.url = url;
     }
 }

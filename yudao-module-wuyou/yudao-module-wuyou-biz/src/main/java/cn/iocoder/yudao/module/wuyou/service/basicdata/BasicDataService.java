@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.wuyou.service.basicdata;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataImportVO;
 import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataPageReqVO;
 import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataSaveReqVO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.basicdata.BasicDataDO;
@@ -53,6 +54,6 @@ public interface BasicDataService {
      */
     PageResult<BasicDataDO> getBasicDataPage(BasicDataPageReqVO pageReqVO);
 
-    void  importByIdS(List<String> ids);
+    BasicDataImportVO importById(List<String> ids);
 
 }

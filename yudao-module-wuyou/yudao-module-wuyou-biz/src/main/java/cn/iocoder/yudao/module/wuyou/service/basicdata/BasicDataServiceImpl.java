@@ -93,7 +93,7 @@ public class BasicDataServiceImpl implements BasicDataService {
         return basicDataMapper.selectPage(pageReqVO);
     }
     @Override
-    public void importByIdS(List<String> ids) {
+    public BasicDataImportVO importById(List<String> ids) {
         String cookie;
         String url = "https://allegro.pl/oferta/apple-ipad-10-9-10-gen-64gb-wifi-blue-niebieski-17111724334"; // 这里可以从 ids 中提取 URL
 
@@ -108,11 +108,12 @@ public class BasicDataServiceImpl implements BasicDataService {
             // cookie 过期，重新获取并设置
             cookie = refreshCookie(userIdStr, userId);
         }
-
         // 进行接下来的导入操作
         if (cookie != null) {
-            performImport(ids,cookie);
+            BasicDataImportVO basicDataImportVO = performImport(ids, cookie);
+            return basicDataImportVO;
         }
+        return null;
     }
 
     // 获取缓存中的 cookie，若没有则返回 null
@@ -137,8 +138,8 @@ public class BasicDataServiceImpl implements BasicDataService {
     // 重新获取并设置 cookie
     private String refreshCookie(String userIdStr, Long userId) {
         AdminUserRespDTO user = adminUserApi.getUser(userId);
-        String newCookie = reGetCookie(user.getErpName(), user.getEprPwd());
-        redisUtil.set(userIdStr, newCookie, 60 * 60 * 3);  // 设置 Redis 缓存 3 小时
+        String newCookie = reGetCookie(user.getErpName(), user.getErpPwd());
+        redisUtil.set(userIdStr, newCookie, 60 * 60 * 48);  // 设置 Redis 缓存 3 小时
         return newCookie;
     }
 

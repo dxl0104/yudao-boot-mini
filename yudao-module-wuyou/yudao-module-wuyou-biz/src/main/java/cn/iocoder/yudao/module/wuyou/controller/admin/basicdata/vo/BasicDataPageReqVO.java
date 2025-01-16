@@ -33,4 +33,5 @@ public class BasicDataPageReqVO extends PageParam {
     @Schema(description = "分类")
     private String category;
 
+
 }

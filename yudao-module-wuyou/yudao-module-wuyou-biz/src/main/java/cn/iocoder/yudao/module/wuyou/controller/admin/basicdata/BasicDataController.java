@@ -33,6 +33,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -136,6 +137,12 @@ public class BasicDataController {
     public CommonResult<String> getCategoryData(@RequestBody BasicDataRqeCategoryVO basicDataRqeCategoryVO) {
         log.info("返回数据{}", getCategoryData(basicDataRqeCategoryVO.getSourceUrl(), basicDataRqeCategoryVO.getP(), null));
         return getCategoryData(basicDataRqeCategoryVO.getSourceUrl(), basicDataRqeCategoryVO.getP(), null);
+    }
+
+    @PostMapping("/importId")
+    public  CommonResult importId(@RequestBody BasicDataImportReqVO basicDataImportReqVO){
+        BasicDataImportVO basicDataImportVO = basicDataService.importById(basicDataImportReqVO.getIdList());
+        return success(basicDataImportVO);
     }
 
     public CommonResult<String> getCategoryData(String sourceUrl, Integer page, String cookie) {
@@ -278,9 +285,8 @@ public class BasicDataController {
             // URL地址
             String url = "https://www.51selling.com/collect/CollectBox/SaveProduct";
 
-
             // 请求的JSON数据
-            String postData = "{\"Html\":\"" + html + "\",\"sourceUrl\":\"" + sourceUrl + "\",\"SourcePlatform\":\"" + sourcePlatform + "\"}";
+            String postData = "{\"Html\":\"" + html + "\",\"SouceUrl\":\"" + sourceUrl + "\",\"SourcePlatform\":" + sourcePlatform + "}";
 
             // 设置连接
             URL targetUrl = new URL(url);

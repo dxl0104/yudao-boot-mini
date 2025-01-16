@@ -41,23 +41,23 @@ public class ApiAccessLogInterceptor implements HandlerInterceptor {
             request.setAttribute(ATTRIBUTE_HANDLER_METHOD, handlerMethod);
         }
 
-        // 打印 request 日志
-        if (!SpringUtils.isProd()) {
-            Map<String, String> queryString = ServletUtils.getParamMap(request);
-            String requestBody = ServletUtils.isJsonRequest(request) ? ServletUtils.getBody(request) : null;
-            if (CollUtil.isEmpty(queryString) && StrUtil.isEmpty(requestBody)) {
-                log.info("[preHandle][开始请求 URL({}) 无参数]", request.getRequestURI());
-            } else {
-                log.info("[preHandle][开始请求 URL({}) 参数({})]", request.getRequestURI(),
-                        StrUtil.blankToDefault(requestBody, queryString.toString()));
-            }
-            // 计时
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
-            request.setAttribute(ATTRIBUTE_STOP_WATCH, stopWatch);
-            // 打印 Controller 路径
-            printHandlerMethodPosition(handlerMethod);
-        }
+//        // 打印 request 日志
+//        if (!SpringUtils.isProd()) {
+//            Map<String, String> queryString = ServletUtils.getParamMap(request);
+//            String requestBody = ServletUtils.isJsonRequest(request) ? ServletUtils.getBody(request) : null;
+//            if (CollUtil.isEmpty(queryString) && StrUtil.isEmpty(requestBody)) {
+//                log.info("[preHandle][开始请求 URL({}) 无参数]", request.getRequestURI());
+//            } else {
+//                log.info("[preHandle][开始请求 URL({}) 参数({})]", request.getRequestURI(),
+//                        StrUtil.blankToDefault(requestBody, queryString.toString()));
+//            }
+//            // 计时
+//            StopWatch stopWatch = new StopWatch();
+//            stopWatch.start();
+//            request.setAttribute(ATTRIBUTE_STOP_WATCH, stopWatch);
+//            // 打印 Controller 路径
+//            printHandlerMethodPosition(handlerMethod);
+//        }
         return true;
     }
 

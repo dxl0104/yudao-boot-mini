@@ -97,7 +97,7 @@ public class ErpUtils {
         if (response.getIsSuccess() == false) {
             error(PWD_ERROR);
         } else if (response.getIsSuccess()) {
-            return response.getCookie();
+            return response.getCookies();
         }
         return null;
     }
@@ -112,7 +112,7 @@ public class ErpUtils {
             String base64Encoded = Base64.getEncoder().encodeToString(encodedURI.getBytes(StandardCharsets.UTF_8));
 
             // 请求的JSON数据
-            String postData = "{\"Html\":\"" + base64Encoded + "\",\"sourceUrl\":\"" + sourceUrl + "\",\"SourcePlatform\":\"" + sourcePlatform + "\"}";
+            String postData = "{\"Html\":\"" + base64Encoded + "\",\"SouceUrl\":\"" + sourceUrl + "\",\"SourcePlatform\":\"" + sourcePlatform + "\"}";
 
             // 设置连接
             URL targetUrl = new URL(url);
