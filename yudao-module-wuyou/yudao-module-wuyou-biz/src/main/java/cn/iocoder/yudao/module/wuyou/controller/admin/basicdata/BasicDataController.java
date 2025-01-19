@@ -214,48 +214,44 @@ public class BasicDataController {
             // 创建 URL 对象
             URL targetUrl = new URL(sourceUrl);
             HttpURLConnection connection = (HttpURLConnection) targetUrl.openConnection();
-
-            // 设置请求方法为 GET
             connection.setRequestMethod("GET");
 
-            // 设置请求头，模拟 cURL 请求头
-            connection.setRequestProperty("accept", "application/json, text/javascript, */*; q=0.01");
-            connection.setRequestProperty("accept-language", "zh-CN,zh;q=0.9,en;q=0.8");
-            connection.setRequestProperty("content-type", "application/json");
-            //cookie必须有 没有的话无法请求
-            if (cookie != null && "".equals(cookie)) {
-                connection.setRequestProperty("cookie", cookie);
-            } else {
-                connection.setRequestProperty("cookie", "_cmuid=90205531-ec74-4b4c-8a95-49986067b911; _gcl_au=1.1.640494160.1735788908; gdpr_permission_given=1; __gfp_64b=-TURNEDOFF; OptOutOnRequest=groups=googleAnalytics:1,googleAdvertisingProducts:1,tikTok:1,allegroAdsNetwork:1,facebook:1; _fbp=fb.1.1735788926019.197344872; _meta_facebookTag_sync=1735788926019; _meta_googleGtag_ga_library_loaded=1735788926021; _ga=GA1.1.1252726110.1735788926; _ga_G64531DSC4=GS1.1.1735788926.1.0.1735789133.60.0.0; _meta_googleGtag_ga=GA1.1.1252726110.1735788926; _meta_googleGtag_ga_session_count=5; _meta_googleGtag_session_id=1736322260; wdctx=v5.Imv6Pch56tZ9ZxjmE-nzTloXk04e0xXtNG4qaDuxDG-TKsN_hT_cdSRwD-1azQNPXnexzOHCKV-j5Dgl5BKqYkxsBaMwyW68-IPli-MES5HRhyTBdcpHti-h-PFLACvyh4SIY1YJl3C2Lua6NwImZHeb-0rEcv17pvF1ujEQOgUOyKTZvwRADJzkK8_fAU6X3azsb8YCqqxIXN3FZyoUZkj4NKzWRsH2jUKxw5jiDy0.WvQZlFTNThC2v1IX4P5CBQ.V7IfZOTqukk; datadome=6r4OatSL98E4HTsnniwC72b~tlgFgBjjfazW~5Rvz823f7uwe_DGaTOJqlurKcg2FMUAIFClmQXF~R6SWqo6C9zU~zYUOK8IhixDqvoA3zAQ5eWfz574GfFjJzrz5N1O");
-            }
-            connection.setRequestProperty("dpr", "1");
-            connection.setRequestProperty("priority", "u=1, i");
-            connection.setRequestProperty("referer", "https://allegro.pl/");
-            connection.setRequestProperty("sec-ch-device-memory", "8");
-            connection.setRequestProperty("sec-ch-prefers-color-scheme", "light");
-            connection.setRequestProperty("sec-ch-prefers-reduced-motion", "no-preference");
-            connection.setRequestProperty("sec-ch-ua", "\"Google Chrome\";v=\"131\", \"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"");
-            connection.setRequestProperty("sec-ch-ua-arch", "\"x86\"");
-            connection.setRequestProperty("sec-ch-ua-full-version-list", "\"Google Chrome\";v=\"131.0.6778.205\", \"Chromium\";v=\"131.0.6778.205\", \"Not_A Brand\";v=\"24.0.0.0\"");
-            connection.setRequestProperty("sec-ch-ua-mobile", "?0");
-            connection.setRequestProperty("sec-ch-ua-model", "\"\"");
-            connection.setRequestProperty("sec-ch-ua-platform", "\"Windows\"");
-            connection.setRequestProperty("sec-ch-viewport-height", "919");
-            connection.setRequestProperty("sec-fetch-dest", "empty");
-            connection.setRequestProperty("sec-fetch-mode", "cors");
-            connection.setRequestProperty("sec-fetch-site", "same-origin");
-            connection.setRequestProperty("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.205 Safari/537.36");
-            connection.setRequestProperty("viewport-width", "798");
-            connection.setRequestProperty("x-requested-with", "XMLHttpRequest");
+            // 设置请求头
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty("Accept-Language", "en-US,en;q=0.9");
+            connection.setRequestProperty("Cookie", "_cmuid=310140f9-42e0-402d-bb1c-8120a50ece59; OptOutOnRequest=groups=googleAnalytics:0,googleAdvertisingProducts:0,tikTok:0,allegroAdsNetwork:0,facebook:0; gdpr_permission_given=0; __gads=ID=d822689763c495c2:T=1736995394:RT=1736995394:S=ALNI_MZWdM1Sl1j5ybZsQUQMz2xS1JiYIg; __gpi=UID=00000feb0f46fc39:T=1736995394:RT=1736995394:S=ALNI_MY6u8nh7FQpbELiIq-GgB7NtkUdbg; __eoi=ID=4a33b648ceed65c6:T=1736995394:RT=1736995394:S=AA-Afjab-PxO72Z2C7Iof2Dfd2z5; QXLSESSID=00bc09fe79b034d7a484f84c98345e08576f9df8846f2f//03; __gfp_64b=-TURNEDOFF; wdctx=v5.xtwDzf30iVPk9kFhY6Qb6f32VZWSLzOSXN8M5PWxVdqKVHmlU75K2L4q9-V8hWpn3dWBPmfBWuVv6SubPHvNt07I3-PI2JwcHZtTo9vO7hd393mIWc253mujiZ8W5yn4O95kLonRq12KgESljDvlsva1IOuQ9_vYz-0WGcLqjLu42EZRKHzAmgtsaxqRKt05kTFVbTdooLB5xzINdMpvCLwASBBNq0RjJP3Hq5sXE4M_.24Srd3sITyalJ8fUt-3C1A.cffy8qxAvic; datadome=7NxGkIbevJNbwG8BoHPS4jt2ysBjYrc6RY3woysVwlR~soj5FJNKXvhLfEFB00Km3wbgRrgfH9n1R2Rkd7D8aKZ16wI_FoC_iboU7wz8cVwfpy5D6GallZSB8635rWUY");
+            connection.setRequestProperty("DPR", "1");
+            connection.setRequestProperty("Priority", "u=0, i");
+            connection.setRequestProperty("Sec-CH-Device-Memory", "1");
+            connection.setRequestProperty("Sec-CH-Prefers-Color-Scheme", "light");
+            connection.setRequestProperty("Sec-CH-Prefers-Reduced-Motion", "no-preference");
+            connection.setRequestProperty("Sec-CH-UA", "\"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"");
+            connection.setRequestProperty("Sec-CH-UA-Arch", "\"x86\"");
+            connection.setRequestProperty("Sec-CH-UA-Full-Version-List", "\"Chromium\";v=\"131.0.6778.264\", \"Not_A Brand\";v=\"24.0.0.0\"");
+            connection.setRequestProperty("Sec-CH-UA-Mobile", "?0");
+            connection.setRequestProperty("Sec-CH-UA-Model", "\"\"");
+            connection.setRequestProperty("Sec-CH-UA-Platform", "\"Linux\"");
+            connection.setRequestProperty("Sec-CH-Viewport-Height", "851");
+            connection.setRequestProperty("Sec-Fetch-Dest", "document");
+            connection.setRequestProperty("Sec-Fetch-Mode", "navigate");
+            connection.setRequestProperty("Sec-Fetch-Site", "none");
+            connection.setRequestProperty("Sec-Fetch-User", "?1");
+            connection.setRequestProperty("Upgrade-Insecure-Requests", "1");
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36");
+            connection.setRequestProperty("Viewport-Width", "329");
 
             // 获取响应码
             int responseCode = connection.getResponseCode();
             System.out.println("商品详情 Response Code: " + responseCode);
 
-            if (responseCode != 200) {
+            if (responseCode == 403) {
                 return error(GET_CAGETORY_NOT_EXISTS);
             }
+            if (responseCode ==429){
+                String responseMessage = connection.getResponseMessage();
+                error(429,responseMessage);
 
+            }
             // 读取响应内容
             BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             String inputLine;
@@ -264,9 +260,6 @@ public class BasicDataController {
                 response.append(inputLine);
             }
             in.close();
-
-            // 输出返回的内容
-            System.out.println(response.toString());
             return success(response.toString());
 
         } catch (Exception e) {

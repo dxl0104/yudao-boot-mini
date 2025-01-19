@@ -11,4 +11,8 @@ public interface ErrorCodeConstants {
     ErrorCode ERP_AMOUNT_NOT_EXIST = new ErrorCode(10006, "请先设置erp账号和密码");
     ErrorCode PWD_ERROR = new ErrorCode(10007, "密码错误，总共五次机会");
     ErrorCode IMPORT_ERROR = new ErrorCode(10008, "导入失败");
+    ErrorCode TASK_NOT_EXISTS = new ErrorCode(10009, "采集任务不存在");
+    ErrorCode TASK_PAGE_DETAIL_NOT_EXISTS = new ErrorCode(10010, "页数据采集状态不存在");
+    ErrorCode DEVICE_NOT_EXISTS = new ErrorCode(10011, "采集器信息不存在");
+    ErrorCode SOURCE_URL_NOT_EXISTS = new ErrorCode(10012, "列表链接不存在");
 }
