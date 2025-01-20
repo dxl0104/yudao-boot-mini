@@ -5,6 +5,8 @@ import java.util.*;
 import java.time.LocalDateTime;
 import java.time.LocalDateTime;
 import java.time.LocalDateTime;
+import java.time.LocalDateTime;
+import java.time.LocalDateTime;
 import com.baomidou.mybatisplus.annotation.*;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 
@@ -48,5 +50,23 @@ public class TaskDO extends BaseDO {
      * 页数
      */
     private Integer pages;
+    /**
+     * 优先级
+     */
+    private Integer priority;
+    /**
+     * 开始时间
+     */
+    private LocalDateTime startTime;
+    /**
+     * 结束时间
+     */
+    private LocalDateTime endTime;
+
+    private String url;
+
+    private String detailIds;
+
+
 
 }

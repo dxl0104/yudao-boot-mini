@@ -11,13 +11,13 @@ import java.time.LocalDateTime;
 @Data
 public class TaskSaveReqVO {
 
-    @Schema(description = "id", requiredMode = Schema.RequiredMode.REQUIRED, example = "27451")
+    @Schema(description = "id", requiredMode = Schema.RequiredMode.REQUIRED, example = "11255")
     private Long id;
 
-    @Schema(description = "类型", example = "2")
+    @Schema(description = "类型", example = "1")
     private Integer taskType;
 
-    @Schema(description = "状态", example = "1")
+    @Schema(description = "状态", example = "2")
     private Integer status;
 
     @Schema(description = "超时时间")
@@ -25,5 +25,17 @@ public class TaskSaveReqVO {
 
     @Schema(description = "页数")
     private Integer pages;
+
+    @Schema(description = "优先级")
+    private Integer priority;
+
+    @Schema(description = "开始时间")
+    private LocalDateTime startTime;
+
+    @Schema(description = "结束时间")
+    private LocalDateTime endTime;
+
+    @Schema(description = "url")
+    private String url;
 
 }

@@ -24,6 +24,9 @@ public interface TaskMapper extends BaseMapperX<TaskDO> {
                 .eqIfPresent(TaskDO::getTimeoutAt, reqVO.getTimeoutAt())
                 .eqIfPresent(TaskDO::getPages, reqVO.getPages())
                 .betweenIfPresent(TaskDO::getCreateTime, reqVO.getCreateTime())
+                .eqIfPresent(TaskDO::getPriority, reqVO.getPriority())
+                .betweenIfPresent(TaskDO::getStartTime, reqVO.getStartTime())
+                .betweenIfPresent(TaskDO::getEndTime, reqVO.getEndTime())
                 .orderByDesc(TaskDO::getId));
     }
 

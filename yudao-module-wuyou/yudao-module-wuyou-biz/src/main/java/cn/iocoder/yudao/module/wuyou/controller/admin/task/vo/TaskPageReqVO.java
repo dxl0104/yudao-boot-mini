@@ -15,10 +15,10 @@ import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_
 @ToString(callSuper = true)
 public class TaskPageReqVO extends PageParam {
 
-    @Schema(description = "类型", example = "2")
+    @Schema(description = "类型", example = "1")
     private Integer taskType;
 
-    @Schema(description = "状态", example = "1")
+    @Schema(description = "状态", example = "2")
     private Integer status;
 
     @Schema(description = "超时时间")
@@ -30,5 +30,18 @@ public class TaskPageReqVO extends PageParam {
     @Schema(description = "创建时间")
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
     private LocalDateTime[] createTime;
+
+    @Schema(description = "优先级")
+    private Integer priority;
+
+    @Schema(description = "开始时间")
+    @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
+    private LocalDateTime[] startTime;
+
+    @Schema(description = "结束时间")
+    @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
+    private LocalDateTime[] endTime;
+
+    private String url;
 
 }
