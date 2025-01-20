@@ -52,4 +52,6 @@ public interface SourceUrlService {
      */
     PageResult<SourceUrlDO> getSourceUrlPage(SourceUrlPageReqVO pageReqVO);
 
+    List<SourceUrlDO> getSourceUrlList();
+
 }

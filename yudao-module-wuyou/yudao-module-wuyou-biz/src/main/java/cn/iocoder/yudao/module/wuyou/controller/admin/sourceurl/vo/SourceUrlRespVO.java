@@ -28,4 +28,6 @@ public class SourceUrlRespVO {
     @ExcelProperty("总页数")
     private Integer pages;
 
+    private Integer covertTask;
+
 }

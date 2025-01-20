@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.wuyou.service.sourceurl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
@@ -71,4 +72,8 @@ public class SourceUrlServiceImpl implements SourceUrlService {
         return sourceUrlMapper.selectPage(pageReqVO);
     }
 
+    @Override
+    public List<SourceUrlDO> getSourceUrlList() {
+        return sourceUrlMapper.selectList(SourceUrlDO::getConvertTask,0);
+    }
 }

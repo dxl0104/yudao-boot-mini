@@ -67,6 +67,8 @@ public class TaskDO extends BaseDO {
 
     private String detailIds;
 
+    private Integer isResolve;
+
 
 
 }

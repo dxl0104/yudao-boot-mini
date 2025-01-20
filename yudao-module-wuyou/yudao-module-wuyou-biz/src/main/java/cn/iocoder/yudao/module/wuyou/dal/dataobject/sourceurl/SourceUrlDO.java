@@ -35,5 +35,9 @@ public class SourceUrlDO extends BaseDO {
      * 总页数
      */
     private Integer pages;
+    /**
+     * 是否转换为任务 0-未转换 1-已转换
+     */
+    private Integer convertTask;
 
 }
