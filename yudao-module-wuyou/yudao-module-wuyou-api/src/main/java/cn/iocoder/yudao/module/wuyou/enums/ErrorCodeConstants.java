@@ -15,4 +15,5 @@ public interface ErrorCodeConstants {
     ErrorCode TASK_PAGE_DETAIL_NOT_EXISTS = new ErrorCode(10010, "页数据采集状态不存在");
     ErrorCode DEVICE_NOT_EXISTS = new ErrorCode(10011, "采集器信息不存在");
     ErrorCode SOURCE_URL_NOT_EXISTS = new ErrorCode(10012, "列表链接不存在");
+    ErrorCode TASK_PROCESS_NOT_EXISTS = new ErrorCode(10013, "任务进度不存在");
 }

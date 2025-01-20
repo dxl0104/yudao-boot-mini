@@ -25,16 +25,7 @@ public class TaskDetailJob implements JobHandler {
         if (!taskDOS.isEmpty()) {
             //将任务进行分解
             for (TaskDO taskDO : taskDOS) {
-                Integer page = taskDO.getPages();
-                ArrayList<TaskPageDetailDO> taskPageDetailDOS = new ArrayList<>();
-                //创建
-                for (int i = 1; i <= page; i++) {
-                    TaskPageDetailDO taskPageDetailDO = new TaskPageDetailDO();
-                    taskPageDetailDO.setTaskId(taskDO.getId());
-                    taskPageDetailDO.setPageNum(i);
-                    taskPageDetailDO.setStatus(0);
-                    taskPageDetailDOS.add(taskPageDetailDO);
-                }
+                ArrayList<TaskPageDetailDO> taskPageDetailDOS = getTaskPageDetailDOS(taskDO);
                 Boolean aBoolean = taskPageDetailMapper.insertBatch(taskPageDetailDOS);
                 if (aBoolean){
                     taskDO.setIsResolve(1);
@@ -43,5 +34,20 @@ public class TaskDetailJob implements JobHandler {
             }
         }
         return "操作成功";
+    }
+
+    private static ArrayList<TaskPageDetailDO> getTaskPageDetailDOS(TaskDO taskDO) {
+        Integer page = taskDO.getPages();
+        ArrayList<TaskPageDetailDO> taskPageDetailDOS = new ArrayList<>();
+        //创建
+        for (int i = 1; i <= page; i++) {
+            TaskPageDetailDO taskPageDetailDO = new TaskPageDetailDO();
+            taskPageDetailDO.setTaskId(taskDO.getId());
+            taskPageDetailDO.setPageNum(i);
+            taskPageDetailDO.setStatus(0);
+            taskPageDetailDO.setUrl(taskDO.getUrl());
+            taskPageDetailDOS.add(taskPageDetailDO);
+        }
+        return taskPageDetailDOS;
     }
 }

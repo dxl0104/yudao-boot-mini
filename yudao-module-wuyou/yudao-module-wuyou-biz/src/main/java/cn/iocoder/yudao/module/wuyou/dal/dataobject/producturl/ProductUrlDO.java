@@ -1,11 +1,10 @@
 package cn.iocoder.yudao.module.wuyou.dal.dataobject.producturl;
 
-import lombok.*;
-import java.util.*;
-import java.time.LocalDateTime;
-import java.time.LocalDateTime;
-import com.baomidou.mybatisplus.annotation.*;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.*;
 
 /**
  * 商品url列表 DO
@@ -33,5 +32,8 @@ public class ProductUrlDO extends BaseDO {
     private String url;
 
     private Integer processFlag;
+
+    //上层列表链接地址
+    private String categoryUrl;
 
 }

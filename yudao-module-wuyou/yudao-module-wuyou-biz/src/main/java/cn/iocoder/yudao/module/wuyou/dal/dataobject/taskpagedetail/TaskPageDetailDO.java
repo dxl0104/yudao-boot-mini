@@ -55,5 +55,9 @@ public class TaskPageDetailDO extends BaseDO {
      * 超时时间
      */
     private LocalDateTime timeout;
+    /**
+     * 链接
+     */
+    private String url;
 
 }
