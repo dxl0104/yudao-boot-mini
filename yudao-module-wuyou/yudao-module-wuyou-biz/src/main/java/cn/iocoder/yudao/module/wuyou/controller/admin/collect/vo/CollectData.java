@@ -14,5 +14,5 @@ public class CollectData {
     //当前页数
     private Integer currentPage;
 
-    private List<ProductUrlDO> productList;
+    private List<String> productList;
 }

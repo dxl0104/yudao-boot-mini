@@ -5,6 +5,7 @@ import cn.iocoder.yudao.module.wuyou.dal.dataobject.task.TaskDO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.taskpagedetail.TaskPageDetailDO;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.task.TaskMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.taskpagedetail.TaskPageDetailMapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -21,7 +22,7 @@ public class TaskDetailJob implements JobHandler {
 
     @Override
     public String execute(String param) throws Exception {
-        List<TaskDO> taskDOS = taskMapper.selectList(TaskDO::getIsResolve, 0);
+        List<TaskDO> taskDOS = taskMapper.selectList(new QueryWrapper<TaskDO>().eq("is_resolve",0).eq("task_type",0));
         if (!taskDOS.isEmpty()) {
             //将任务进行分解
             for (TaskDO taskDO : taskDOS) {

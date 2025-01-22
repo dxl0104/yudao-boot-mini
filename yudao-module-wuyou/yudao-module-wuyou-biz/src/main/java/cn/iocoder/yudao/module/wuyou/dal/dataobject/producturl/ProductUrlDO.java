@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 /**
  * 商品url列表 DO
  *
@@ -35,5 +37,9 @@ public class ProductUrlDO extends BaseDO {
 
     //上层列表链接地址
     private String categoryUrl;
+
+    private Long deviceId;
+
+    private LocalDateTime assignedAt;
 
 }

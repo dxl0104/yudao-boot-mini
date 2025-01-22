@@ -4,14 +4,18 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataRespVO;
+import cn.iocoder.yudao.module.wuyou.controller.admin.collect.vo.CollectData;
 import cn.iocoder.yudao.module.wuyou.controller.admin.collect.vo.TaskPageResVO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.device.DeviceDO;
+import cn.iocoder.yudao.module.wuyou.dal.dataobject.producturl.ProductUrlDO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.task.TaskDO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.taskpagedetail.TaskPageDetailDO;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.device.DeviceMapper;
+import cn.iocoder.yudao.module.wuyou.dal.mysql.producturl.ProductUrlMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.task.TaskMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.taskpagedetail.TaskPageDetailMapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,9 +29,11 @@ import javax.annotation.security.PermitAll;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.error;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 @Tag(name = "管理后台 - 采集器请求接口")
 @RestController
@@ -41,6 +47,9 @@ public class CollectController {
 
     @Resource
     private TaskPageDetailMapper taskPageDetailMapper;
+
+    @Resource
+    private ProductUrlMapper productUrlMapper;
 
     @Resource
     private DeviceMapper deviceMapper;
@@ -81,14 +90,29 @@ public class CollectController {
                     break;
                 }
             }
+            else if (task.getTaskType() ==1){
+                //请求商品的详情任务
+                String detailIds = task.getDetailIds();
+                ObjectMapper objectMapper = new ObjectMapper();
+                try {
+                    List<Long> detailIdsList = objectMapper.readValue(detailIds, new TypeReference<List<Long>>(){});
+                    // 使用 detailIdsArray
+                    List<ProductUrlDO> list = productUrlMapper.selectList(new QueryWrapper<ProductUrlDO>().in("id", detailIdsList));
+                    List<String> collect = list.stream().map(ProductUrlDO::getUrl).collect(Collectors.toList());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         // 如果还没有收集到 50 条数据，可以返回失败或者继续处理  不足50条也返回
         if (taskPageDetailDOS.size() < 50) {
-            return error(404,"Not enough available data to assign.");
+            return error(404, "Not enough available data to assign.");
         }
         for (TaskPageDetailDO taskPageDetailDO : taskPageDetailDOS) {
             taskPageDetailDO.setDeviceId(deviceDO.getId());
+            //设置为采集中
+            taskPageDetailDO.setStatus(1);
             taskPageDetailDO.setAssignedAt(LocalDateTime.now());
         }
         taskPageDetailMapper.updateBatch(taskPageDetailDOS);
@@ -101,7 +125,45 @@ public class CollectController {
     @PostMapping("/saveData")
     @Operation(summary = "保存数据")
     @PermitAll
-    public CommonResult<List<TaskPageResVO>> saveData(@RequestParam("ip") String ipAddress) {
+    public CommonResult saveData(@RequestBody CollectData collectData) {
+        Integer type = collectData.getType();
+        //  先收集page的数据 要先修改pageDetail的记录  要修改进度表
+        if (type == 0) {
+            String categoryUrl = collectData.getUrl();
+            Integer currentPage = collectData.getCurrentPage();
+
+            TaskPageDetailDO taskPageDetailDO = taskPageDetailMapper.selectOne(new QueryWrapper<TaskPageDetailDO>().eq("url", categoryUrl).eq("page_num", currentPage));
+            //设置为采集完成
+            taskPageDetailDO.setStatus(2);
+            taskPageDetailMapper.updateById(taskPageDetailDO);
+
+            //插入链接数据  url重复的 数据库会进行过滤
+            List<String> productStr = collectData.getProductList();
+            ArrayList<ProductUrlDO> productList = new ArrayList<>();
+            for (String item : productStr) {
+                ProductUrlDO productUrlDO = new ProductUrlDO();
+                productUrlDO.setUrl(item);
+                productUrlDO.setCategoryUrl(categoryUrl);
+                productList.add(productUrlDO);
+            }
+            Boolean aBoolean = productUrlMapper.insertBatch(productList);
+            if (aBoolean){
+                //生成一个商品详情任务
+                TaskDO taskDO = new TaskDO();
+                taskDO.setTaskType(1);
+                taskDO.setUrl(categoryUrl);
+                List<Long> collect = productList.stream().map(ProductUrlDO::getId).collect(Collectors.toList());
+                ObjectMapper objectMapper = new ObjectMapper();
+                try {
+                    String jsonString = objectMapper.writeValueAsString(collect);
+                    taskDO.setDetailIds(jsonString);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                taskMapper.insert(taskDO);
+            }
+            return success(aBoolean);
+        }
         return null;
     }
 
@@ -127,6 +189,7 @@ public class CollectController {
                     // 创建一个新的TaskPageResVO，存储最小和最大页数
                     TaskPageResVO aggregatedDetail = new TaskPageResVO();
                     aggregatedDetail.setUrl(url);
+                    aggregatedDetail.setCategory(0);
                     aggregatedDetail.setMinPageNum(minPageNum);  // 设置最小页数
                     aggregatedDetail.setMaxPageNum(maxPageNum);  // 设置最大页数
 
@@ -136,8 +199,6 @@ public class CollectController {
 
         return urlPageMap;
     }
-
-
 
 
 }
