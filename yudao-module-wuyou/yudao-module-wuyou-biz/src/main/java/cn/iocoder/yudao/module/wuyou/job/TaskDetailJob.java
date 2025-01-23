@@ -12,6 +12,9 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 将列表任务分解
+ */
 @Component
 public class TaskDetailJob implements JobHandler {
     @Resource

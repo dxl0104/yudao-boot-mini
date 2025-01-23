@@ -99,15 +99,27 @@ public class CollectController {
                     // 使用 detailIdsArray
                     List<ProductUrlDO> list = productUrlMapper.selectList(new QueryWrapper<ProductUrlDO>().in("id", detailIdsList));
                     List<String> collect = list.stream().map(ProductUrlDO::getUrl).collect(Collectors.toList());
+                    TaskPageResVO taskPageResVO = new TaskPageResVO();
+                    //详情任务
+                    taskPageResVO.setCategory(1);
+                    taskPageResVO.setUrlList(collect);
+                    List<TaskPageResVO> taskPageResVOS = new ArrayList<>();
+                    taskPageResVOS.add(taskPageResVO);
+                    for (ProductUrlDO productUrlDO : list) {
+                        productUrlDO.setDeviceId(deviceDO.getId());
+                        productUrlDO.setAssignedAt(LocalDateTime.now());
+                        //设置为采集中
+                        productUrlDO.setProcessFlag(1);
+                    }
+                    productUrlMapper.updateBatch(list);
+                    //详情任务
+                    task.setStatus(2);
+
+                    return success(taskPageResVOS);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-        }
-
-        // 如果还没有收集到 50 条数据，可以返回失败或者继续处理  不足50条也返回
-        if (taskPageDetailDOS.size() < 50) {
-            return error(404, "Not enough available data to assign.");
         }
         for (TaskPageDetailDO taskPageDetailDO : taskPageDetailDOS) {
             taskPageDetailDO.setDeviceId(deviceDO.getId());

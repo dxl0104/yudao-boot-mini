@@ -31,6 +31,7 @@ public class TaskJob implements JobHandler {
     @Override
     public String execute(String param) {
         try {
+            //获取未处理的任务
             List<SourceUrlDO> sourceUrlList = sourceUrlService.getSourceUrlList();
             if (!sourceUrlList.isEmpty()) {
                 for (SourceUrlDO sourceUrlDO : sourceUrlList) {
