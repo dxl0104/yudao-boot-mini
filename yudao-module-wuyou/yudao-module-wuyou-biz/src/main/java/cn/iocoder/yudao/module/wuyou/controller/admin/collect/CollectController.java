@@ -61,7 +61,7 @@ public class CollectController {
     public CommonResult<List<TaskPageResVO>> getCollectData(@RequestParam("ip") String ipAddress) {
         DeviceDO deviceDO = deviceMapper.selectOne(DeviceDO::getIpAddress, ipAddress);
         // 找到可以进行分配的任务
-        List<TaskDO> taskDOList = taskMapper.selectList(new QueryWrapper<TaskDO>().in("status", 0, 1).orderByDesc("create_time"));
+        List<TaskDO> taskDOList = taskMapper.selectList(new QueryWrapper<TaskDO>().in("status", 0, 1).orderByAsc("create_time"));
 
         // 用来存储最终的分页数据
         List<TaskPageDetailDO> taskPageDetailDOS = new ArrayList<>();
@@ -112,9 +112,9 @@ public class CollectController {
                         productUrlDO.setProcessFlag(1);
                     }
                     productUrlMapper.updateBatch(list);
-                    //详情任务
+                    //详情任务 设置为已分配
                     task.setStatus(2);
-
+                    taskMapper.updateById(task);
                     return success(taskPageResVOS);
                 } catch (Exception e) {
                     e.printStackTrace();
