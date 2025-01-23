@@ -1,9 +1,7 @@
 package cn.iocoder.yudao.module.wuyou.service.basicdata;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataImportVO;
-import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataPageReqVO;
-import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataSaveReqVO;
+import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.*;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.basicdata.BasicDataDO;
 
 import javax.validation.Valid;
@@ -53,6 +51,8 @@ public interface BasicDataService {
      * @return 无忧基础数据分页
      */
     PageResult<BasicDataDO> getBasicDataPage(BasicDataPageReqVO pageReqVO);
+
+    Boolean importRes(BasicDataImportReqNewVO basicDataImportReqVO);
 
     BasicDataImportVO importById(List<String> ids);
 

@@ -1,9 +1,15 @@
 package cn.iocoder.yudao.module.wuyou.service.basicdata;
 
+import cn.hutool.core.io.resource.ResourceUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.pojo.CookieDatedRes;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.module.infra.dal.dataobject.file.FileConfigDO;
+import cn.iocoder.yudao.module.infra.dal.mysql.file.FileConfigMapper;
+import cn.iocoder.yudao.module.infra.framework.file.core.client.FileClient;
+import cn.iocoder.yudao.module.infra.framework.file.core.client.FileClientFactory;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.*;
@@ -13,14 +19,22 @@ import cn.iocoder.yudao.module.wuyou.dal.mysql.basicdata.BasicDataMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.producturl.ProductUrlMapper;
 import cn.iocoder.yudao.module.wuyou.utils.ErpUtils;
 import cn.iocoder.yudao.module.wuyou.utils.RedisUtil;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import lombok.Getter;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.common.util.cache.CacheUtils.buildAsyncReloadingCache;
+import static cn.iocoder.yudao.module.infra.enums.ErrorCodeConstants.FILE_CONFIG_NOT_EXISTS;
 import static cn.iocoder.yudao.module.wuyou.enums.ErrorCodeConstants.BASIC_DATA_NOT_EXISTS;
 import static cn.iocoder.yudao.module.wuyou.utils.ErpUtils.reGetCookie;
 
@@ -46,6 +60,32 @@ public class BasicDataServiceImpl implements BasicDataService {
     @Resource
     private AdminUserApi adminUserApi;
 
+    @Resource
+    private FileConfigMapper fileConfigMapper;
+
+    @Resource
+    private FileClientFactory fileClientFactory;
+
+    private static final Long CACHE_MASTER_ID = 0L;
+
+    /**
+     * {@link FileClient} 缓存，通过它异步刷新 fileClientFactory
+     */
+    @Getter
+    private final LoadingCache<Long, FileClient> clientCache = buildAsyncReloadingCache(Duration.ofSeconds(10L),
+            new CacheLoader<Long, FileClient>() {
+
+                @Override
+                public FileClient load(Long id) {
+                    FileConfigDO config = Objects.equals(CACHE_MASTER_ID, id) ?
+                            fileConfigMapper.selectByMaster() : fileConfigMapper.selectById(id);
+                    if (config != null) {
+                        fileClientFactory.createOrUpdateFileClient(config.getId(), config.getStorage(), config.getConfig());
+                    }
+                    return fileClientFactory.getFileClient(null == config ? id : config.getId());
+                }
+
+            });
 
     @Override
     public Long createBasicData(BasicDataSaveReqVO createReqVO) {
@@ -92,6 +132,45 @@ public class BasicDataServiceImpl implements BasicDataService {
     public PageResult<BasicDataDO> getBasicDataPage(BasicDataPageReqVO pageReqVO) {
         return basicDataMapper.selectPage(pageReqVO);
     }
+
+    @Override
+    public Boolean importRes(BasicDataImportReqNewVO basicDataImportReqVO) {
+        Boolean flag = false;
+        // 校验存在
+        validateFileConfigExists(new Long(28));
+
+        // 文件内容转成 byte 数组
+        byte[] fileContent = basicDataImportReqVO.getJson().getBytes(StandardCharsets.UTF_8);
+        String uploadUrl = "";
+        try {
+            // 生成唯一的文件名（以 .txt 结尾）
+            String fileName = IdUtil.fastSimpleUUID() + ".txt";
+            uploadUrl = getFileClient(new Long(28)).upload(fileContent, fileName, "text/plain");
+        } catch (Exception e) {
+            return flag;
+        }
+        //存储数据，将数据转化为JSON的格式
+        BasicDataDO basicDataDO = new BasicDataDO();
+        basicDataDO.setDataJson(uploadUrl);
+        basicDataDO.setUrl(basicDataImportReqVO.getUrl());
+        basicDataMapper.insert(basicDataDO);
+        flag = true;
+
+        return flag;
+    }
+
+    public FileClient getFileClient(Long id) {
+        return clientCache.getUnchecked(id);
+    }
+
+    private FileConfigDO validateFileConfigExists(Long id) {
+        FileConfigDO config = fileConfigMapper.selectById(id);
+        if (config == null) {
+            throw exception(FILE_CONFIG_NOT_EXISTS);
+        }
+        return config;
+    }
+
     @Override
     public BasicDataImportVO importById(List<String> ids) {
         String cookie;

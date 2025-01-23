@@ -13,9 +13,13 @@ import cn.iocoder.yudao.module.wuyou.controller.admin.keyword.vo.KeyWordQueryVO;
 import cn.iocoder.yudao.module.wuyou.controller.admin.keyword.vo.KeywordPageReqVO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.basicdata.BasicDataDO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.keyword.KeywordDO;
+import cn.iocoder.yudao.module.wuyou.dal.mysql.basicdata.BasicDataMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.keyword.KeywordMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.producturl.ProductUrlMapper;
 import cn.iocoder.yudao.module.wuyou.service.basicdata.BasicDataService;
+import javax.annotation.security.PermitAll;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -43,8 +47,7 @@ import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.EXPOR
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.error;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
-import static cn.iocoder.yudao.module.wuyou.enums.ErrorCodeConstants.GET_CAGETORY_NOT_EXISTS;
-import static cn.iocoder.yudao.module.wuyou.enums.ErrorCodeConstants.PRODUCT_NOT_EXISTS;
+import static cn.iocoder.yudao.module.wuyou.enums.ErrorCodeConstants.*;
 
 @Tag(name = "管理后台 - 无忧基础数据")
 @RestController
@@ -61,6 +64,9 @@ public class BasicDataController {
 
     @Resource
     private KeywordMapper keywordMapper;
+
+    @Resource
+    private BasicDataMapper basicDataMapper;
 
     @PostMapping("/create")
     @Operation(summary = "创建无忧基础数据")
@@ -144,6 +150,42 @@ public class BasicDataController {
         BasicDataImportVO basicDataImportVO = basicDataService.importById(basicDataImportReqVO.getIdList());
         return success(basicDataImportVO);
     }
+    /*
+    * 导入商品数据
+    * */
+    @PostMapping("/importRes")
+    @PermitAll
+    public  CommonResult importRes(@RequestBody BasicDataImportReqNewVO basicDataImportReqNewVO){
+        //先校验是否已经插入
+        Boolean intoFlag = (Boolean) this.checkShop(basicDataImportReqNewVO).getData();
+        if (!intoFlag){
+            return error(DATA_INTO_ERROR);
+        }
+        Boolean flag = basicDataService.importRes(basicDataImportReqNewVO);
+        if (flag){
+            return success(flag);
+        }else{
+            return error(DATA_INTO_REPEAT);
+        }
+    }
+    /*
+    * 校验商品是否已经重复插入
+    * */
+    @PostMapping("/checkShop")
+    @PermitAll
+    public  CommonResult checkShop(@RequestBody BasicDataImportReqNewVO basicDataImportReqNewVO){
+        Boolean flag = false;
+        QueryWrapper<BasicDataDO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("url",basicDataImportReqNewVO.getUrl()).eq("deleted",0);
+        BasicDataDO basicDataDO = basicDataMapper.selectOne(queryWrapper);
+        //true可插入  false不可插入
+        if (basicDataDO == null){
+            flag = true;
+        }
+
+        return success(flag);
+    }
+
 
     public CommonResult<String> getCategoryData(String sourceUrl, Integer page, String cookie) {
         try {
