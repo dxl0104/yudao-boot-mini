@@ -33,4 +33,9 @@ public class BasicDataRespVO {
     @ExcelProperty("分类")
     private String category;
 
+    @Schema(description = "url", example = "https://www.iocoder.cn")
+    @ExcelProperty("json")
+    private String dataJson;
+
+
 }
