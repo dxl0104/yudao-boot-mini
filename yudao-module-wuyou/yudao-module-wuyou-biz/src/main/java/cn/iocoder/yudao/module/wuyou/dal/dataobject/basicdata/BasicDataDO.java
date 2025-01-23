@@ -31,7 +31,7 @@ public class BasicDataDO extends BaseDO {
      */
     private String url;
     /**
-     * json数据
+     * json数据(上传后的URL地址)
      */
     private String dataJson;
     /**
