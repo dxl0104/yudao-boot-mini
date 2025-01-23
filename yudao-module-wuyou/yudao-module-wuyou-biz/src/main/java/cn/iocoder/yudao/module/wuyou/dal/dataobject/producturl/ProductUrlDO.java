@@ -32,7 +32,7 @@ public class ProductUrlDO extends BaseDO {
      * url
      */
     private String url;
-
+    //0未采集  1-采集中 2-采集完成 3-采集超时
     private Integer processFlag;
 
     //上层列表链接地址

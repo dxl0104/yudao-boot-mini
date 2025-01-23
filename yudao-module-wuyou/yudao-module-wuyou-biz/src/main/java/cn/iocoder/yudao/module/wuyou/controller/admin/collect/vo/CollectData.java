@@ -15,4 +15,6 @@ public class CollectData {
     private Integer currentPage;
 
     private List<String> productList;
+
+    private String dataJson;
 }

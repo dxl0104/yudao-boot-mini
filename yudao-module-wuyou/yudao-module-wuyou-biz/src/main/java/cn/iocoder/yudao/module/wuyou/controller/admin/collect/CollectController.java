@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.wuyou.controller.admin.collect;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataImportReqNewVO;
 import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataRespVO;
 import cn.iocoder.yudao.module.wuyou.controller.admin.collect.vo.CollectData;
 import cn.iocoder.yudao.module.wuyou.controller.admin.collect.vo.TaskPageResVO;
@@ -14,6 +15,7 @@ import cn.iocoder.yudao.module.wuyou.dal.mysql.device.DeviceMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.producturl.ProductUrlMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.task.TaskMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.taskpagedetail.TaskPageDetailMapper;
+import cn.iocoder.yudao.module.wuyou.service.basicdata.BasicDataService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,6 +55,9 @@ public class CollectController {
 
     @Resource
     private DeviceMapper deviceMapper;
+
+    @Resource
+    private BasicDataService basicDataService;
 
     @PostMapping("/getData")
     @Operation(summary = "获取需要采集的数据")
@@ -175,6 +180,19 @@ public class CollectController {
                 taskMapper.insert(taskDO);
             }
             return success(aBoolean);
+        }
+        if (type == 1){
+            String url = collectData.getUrl();
+            String dataJson= collectData.getDataJson();
+            BasicDataImportReqNewVO basicDataImportReqNewVO = new BasicDataImportReqNewVO();
+            basicDataImportReqNewVO.setUrl(url);
+            basicDataImportReqNewVO.setJson(dataJson);
+            Boolean res = basicDataService.importRes(basicDataImportReqNewVO);
+            //需要将这条数据设置为已采集
+            ProductUrlDO productUrlDO = productUrlMapper.selectOne("url", url);
+            productUrlDO.setProcessFlag(2);
+            productUrlMapper.updateById(productUrlDO);
+            return success(res);
         }
         return null;
     }

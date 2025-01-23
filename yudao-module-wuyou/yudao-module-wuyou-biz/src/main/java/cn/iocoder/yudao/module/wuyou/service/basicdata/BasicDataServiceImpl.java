@@ -135,9 +135,9 @@ public class BasicDataServiceImpl implements BasicDataService {
 
     @Override
     public Boolean importRes(BasicDataImportReqNewVO basicDataImportReqVO) {
-        Boolean flag = false;
+        boolean flag = false;
         // 校验存在
-        validateFileConfigExists(new Long(28));
+        validateFileConfigExists(28L);
 
         // 文件内容转成 byte 数组
         byte[] fileContent = basicDataImportReqVO.getJson().getBytes(StandardCharsets.UTF_8);
@@ -145,7 +145,7 @@ public class BasicDataServiceImpl implements BasicDataService {
         try {
             // 生成唯一的文件名（以 .txt 结尾）
             String fileName = IdUtil.fastSimpleUUID() + ".txt";
-            uploadUrl = getFileClient(new Long(28)).upload(fileContent, fileName, "text/plain");
+            uploadUrl = getFileClient(28L).upload(fileContent, fileName, "text/plain");
         } catch (Exception e) {
             return flag;
         }
