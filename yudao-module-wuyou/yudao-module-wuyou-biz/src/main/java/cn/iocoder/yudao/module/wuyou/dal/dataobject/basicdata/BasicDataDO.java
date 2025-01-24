@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 /**
  * 无忧基础数据 DO
  *
@@ -107,7 +109,7 @@ public class BasicDataDO extends BaseDO {
     /**
      * 快递费
      */
-    private Integer delivery;
+    private BigDecimal delivery;
     /**
      * 分类
      */

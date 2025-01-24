@@ -58,5 +58,7 @@ public class BasicDataRespVO {
      * */
     private String mainCategory3;
 
+    private String productId;
+
 
 }

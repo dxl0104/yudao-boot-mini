@@ -8,6 +8,7 @@ import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
 
@@ -32,6 +33,26 @@ public class BasicDataPageReqVO extends PageParam {
 
     @Schema(description = "分类")
     private String category;
+
+    private List<String> ids;
+
+    /*
+     * 主要商品一级类型
+     * */
+    private String mainCategory1;
+
+    /*
+     * 主要商品二级类型
+     * */
+    private String mainCategory2;
+
+    /*
+     * 主要商品三级类型
+     * */
+    private String mainCategory3;
+
+    private String productId;
+
 
 
 }

@@ -19,7 +19,11 @@ public interface BasicDataMapper extends BaseMapperX<BasicDataDO> {
         return selectPage(reqVO, new LambdaQueryWrapperX<BasicDataDO>()
                 .betweenIfPresent(BasicDataDO::getCreateTime, reqVO.getCreateTime())
                 .eqIfPresent(BasicDataDO::getUrl, reqVO.getUrl())
+                .eqIfPresent(BasicDataDO::getMainCategory1, reqVO.getMainCategory1())
+                .eqIfPresent(BasicDataDO::getMainCategory2, reqVO.getMainCategory2())
+                .eqIfPresent(BasicDataDO::getMainCategory3, reqVO.getMainCategory3())
                 .eqIfPresent(BasicDataDO::getDataJson, reqVO.getDataJson())
+                .eqIfPresent(BasicDataDO::getProductId, reqVO.getProductId())
                 .eqIfPresent(BasicDataDO::getDelivery, reqVO.getDelivery())
                 .eqIfPresent(BasicDataDO::getCategory, reqVO.getCategory())
                 .orderByDesc(BasicDataDO::getId));

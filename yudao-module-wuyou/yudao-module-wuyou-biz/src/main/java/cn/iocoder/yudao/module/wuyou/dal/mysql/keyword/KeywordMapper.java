@@ -19,7 +19,8 @@ public interface KeywordMapper extends BaseMapperX<KeywordDO> {
 
     default PageResult<KeywordDO> selectPage(KeywordPageReqVO reqVO) {
         return selectPage(reqVO, new LambdaQueryWrapperX<KeywordDO>()
-                .eqIfPresent(KeywordDO::getInfringementKeyword, reqVO.getInfringementKeyword())
+                .eqIfPresent(KeywordDO::getId,reqVO.getId())
+                .likeIfPresent(KeywordDO::getInfringementKeyword, reqVO.getInfringementKeyword())
                 .eqIfPresent(KeywordDO::getPlatform, reqVO.getPlatform())
                 .betweenIfPresent(KeywordDO::getCreateTime, reqVO.getCreateTime())
                 .orderByDesc(KeywordDO::getId));

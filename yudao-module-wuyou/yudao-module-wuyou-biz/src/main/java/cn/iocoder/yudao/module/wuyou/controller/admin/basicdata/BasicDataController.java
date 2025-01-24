@@ -109,17 +109,63 @@ public class BasicDataController {
         return success(BeanUtils.toBean(pageResult, BasicDataRespVO.class));
     }
 
-    @GetMapping("/export-excel")
+    @PostMapping ("/export-excel")
     @Operation(summary = "导出无忧基础数据 Excel")
     @PreAuthorize("@ss.hasPermission('wuyou:basic-data:export')")
     @ApiAccessLog(operateType = EXPORT)
-    public void exportBasicDataExcel(@Valid BasicDataPageReqVO pageReqVO,
+    public void exportBasicDataExcel(@Valid @RequestBody BasicDataPageReqVO pageReqVO,
                                      HttpServletResponse response) throws IOException {
-        pageReqVO.setPageSize(PageParam.PAGE_SIZE_NONE);
-        List<BasicDataDO> list = basicDataService.getBasicDataPage(pageReqVO).getList();
+        List<String> ids = pageReqVO.getIds();
+        List<BasicDataDO> dataList = basicDataMapper.selectList(new QueryWrapper<BasicDataDO>().in("id", ids));
+        for (BasicDataDO basicDataDO : dataList) {
+            String offerDescription = basicDataDO.getOfferDescription();
+            offerDescription= getUrlData(offerDescription);
+            if (!offerDescription.equals("")){
+                basicDataDO.setOfferDescription(offerDescription);
+            }
+            String imgUrl = basicDataDO.getImgUrl();
+            imgUrl= getUrlData(imgUrl);
+            if (!imgUrl.equals("")){
+                basicDataDO.setImgUrl(imgUrl);
+            }
+        }
+//        pageReqVO.setPageSize(PageParam.PAGE_SIZE_NONE);
+//        List<BasicDataDO> list = basicDataService.getBasicDataPage(pageReqVO).getList();
         // 导出 Excel
-        ExcelUtils.write(response, "无忧基础数据.xls", "数据", BasicDataRespVO.class,
-                BeanUtils.toBean(list, BasicDataRespVO.class));
+        ExcelUtils.write(response, "无忧基础数据.xls", "数据", BasicDataExcelRespVO.class,
+                BeanUtils.toBean(dataList, BasicDataExcelRespVO.class));
+    }
+
+    public String getUrlData(String fileUrl){
+        try {
+            // 创建 URL 对象
+            URL url = new URL(fileUrl);
+            // 打开 HTTP 连接
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            // 设置请求方式为 GET
+            connection.setRequestMethod("GET");
+            connection.setDoInput(true);
+
+            // 用 StringBuilder 来累积文件内容
+            StringBuilder content = new StringBuilder();
+
+            // 获取文件内容
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String line;
+            // 逐行读取内容并存入 StringBuilder
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append("\n");
+            }
+            // 关闭连接
+            reader.close();
+
+            // 将 StringBuilder 转换为 String
+            return content.toString();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
     @PostMapping("/verifyDuplicate")
@@ -157,10 +203,10 @@ public class BasicDataController {
     @PermitAll
     public  CommonResult importRes(@RequestBody BasicDataImportReqNewVO basicDataImportReqNewVO){
         //先校验是否已经插入
-//        Boolean intoFlag = (Boolean) this.checkShop(basicDataImportReqNewVO).getData();
-//        if (!intoFlag){
-//            return error(DATA_INTO_ERROR);
-//        }
+        Boolean intoFlag = (Boolean) this.checkShop(basicDataImportReqNewVO).getData();
+        if (!intoFlag){
+            return error(DATA_INTO_ERROR);
+        }
         Boolean flag = basicDataService.importRes(basicDataImportReqNewVO);
         if (flag){
             return success(flag);

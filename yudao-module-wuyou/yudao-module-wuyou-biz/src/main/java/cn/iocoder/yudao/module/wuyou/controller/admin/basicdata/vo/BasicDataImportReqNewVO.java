@@ -10,4 +10,6 @@ public class BasicDataImportReqNewVO {
 
     //商品详情整体
     private String json;
+
+    private String delivery;
 }

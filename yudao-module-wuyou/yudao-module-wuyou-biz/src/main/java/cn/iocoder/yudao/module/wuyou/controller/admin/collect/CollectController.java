@@ -1,10 +1,7 @@
 package cn.iocoder.yudao.module.wuyou.controller.admin.collect;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataImportReqNewVO;
-import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataRespVO;
 import cn.iocoder.yudao.module.wuyou.controller.admin.collect.vo.CollectData;
 import cn.iocoder.yudao.module.wuyou.controller.admin.collect.vo.TaskPageResVO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.device.DeviceDO;
@@ -16,26 +13,30 @@ import cn.iocoder.yudao.module.wuyou.dal.mysql.producturl.ProductUrlMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.task.TaskMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.taskpagedetail.TaskPageDetailMapper;
 import cn.iocoder.yudao.module.wuyou.service.basicdata.BasicDataService;
+import cn.iocoder.yudao.module.wuyou.utils.IpUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.annotation.security.PermitAll;
-
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.error;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 @Tag(name = "管理后台 - 采集器请求接口")
 @RestController
@@ -59,14 +60,24 @@ public class CollectController {
     @Resource
     private BasicDataService basicDataService;
 
+    @Resource
+    private IpUtils ipUtils;
+
     @PostMapping("/getData")
     @Operation(summary = "获取需要采集的数据")
-    @Parameter(name = "ip", description = "ip", required = true, example = "47.79.20.197")
     @PermitAll
-    public CommonResult<List<TaskPageResVO>> getCollectData(@RequestParam("ip") String ipAddress) {
+    public CommonResult<List<TaskPageResVO>> getCollectData(HttpServletRequest request) {
+        //获取ip
+        String ipAddress = ipUtils.getClientIp(request);
         DeviceDO deviceDO = deviceMapper.selectOne(DeviceDO::getIpAddress, ipAddress);
+       if (deviceDO==null){
+           return error(500, "采集器不存在");
+       }
         // 找到可以进行分配的任务
         List<TaskDO> taskDOList = taskMapper.selectList(new QueryWrapper<TaskDO>().in("status", 0, 1).orderByAsc("create_time"));
+       if (taskDOList.isEmpty()){
+           return error(500, "没有可分配的任务");
+       }
 
         // 用来存储最终的分页数据
         List<TaskPageDetailDO> taskPageDetailDOS = new ArrayList<>();
@@ -135,6 +146,9 @@ public class CollectController {
         taskPageDetailMapper.updateBatch(taskPageDetailDOS);
         //构造返回的数据
         List<TaskPageResVO> taskPageResVOS = processTaskPageDetails(taskPageDetailDOS);
+        //采集器设置为采集中
+        deviceDO.setStatus(1);
+        deviceMapper.updateById(deviceDO);
         //任务的状态由定时任务进行更改
         return success(taskPageResVOS);
     }

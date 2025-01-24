@@ -18,4 +18,5 @@ public interface ErrorCodeConstants {
     ErrorCode TASK_PROCESS_NOT_EXISTS = new ErrorCode(10013, "任务进度不存在");
     ErrorCode DATA_INTO_REPEAT = new ErrorCode(10014, "数据重复插入");
     ErrorCode DATA_INTO_ERROR = new ErrorCode(10015, "数据插入异常");
+    ErrorCode VIOLATE_PRODUCT_NOT_EXISTS = new ErrorCode(10016, "侵权商品不存在");
 }

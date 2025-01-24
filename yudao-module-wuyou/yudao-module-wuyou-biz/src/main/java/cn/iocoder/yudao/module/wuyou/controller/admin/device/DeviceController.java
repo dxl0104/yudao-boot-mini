@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Operation;
 
+import javax.annotation.security.PermitAll;
 import javax.validation.constraints.*;
 import javax.validation.*;
 import javax.servlet.http.*;
@@ -38,12 +39,6 @@ public class DeviceController {
     @Resource
     private DeviceService deviceService;
 
-    @PostMapping("/create")
-    @Operation(summary = "创建采集器信息")
-    @PreAuthorize("@ss.hasPermission('wuyou:device:create')")
-    public CommonResult<Long> createDevice(@Valid @RequestBody DeviceSaveReqVO createReqVO) {
-        return success(deviceService.createDevice(createReqVO));
-    }
 
     @PutMapping("/update")
     @Operation(summary = "更新采集器信息")

@@ -14,11 +14,16 @@ import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.*;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.basicdata.BasicDataDO;
+import cn.iocoder.yudao.module.wuyou.dal.dataobject.keyword.KeywordDO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.producturl.ProductUrlDO;
+import cn.iocoder.yudao.module.wuyou.dal.dataobject.violateproduct.ViolateProductDO;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.basicdata.BasicDataMapper;
+import cn.iocoder.yudao.module.wuyou.dal.mysql.keyword.KeywordMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.producturl.ProductUrlMapper;
+import cn.iocoder.yudao.module.wuyou.dal.mysql.violateproduct.ViolateProductMapper;
 import cn.iocoder.yudao.module.wuyou.utils.ErpUtils;
 import cn.iocoder.yudao.module.wuyou.utils.RedisUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.esotericsoftware.minlog.Log;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,6 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
@@ -70,6 +76,12 @@ public class BasicDataServiceImpl implements BasicDataService {
     private FileClientFactory fileClientFactory;
 
     private static final Long CACHE_MASTER_ID = 0L;
+
+    @Resource
+    private KeywordMapper keywordMapper;
+
+    @Resource
+    private ViolateProductMapper violateProductMapper;
 
     /**
      * {@link FileClient} 缓存，通过它异步刷新 fileClientFactory
@@ -154,6 +166,8 @@ public class BasicDataServiceImpl implements BasicDataService {
         }
         //存储数据
         BasicDataDO basicDataDO = new BasicDataDO();
+
+        basicDataDO.setDelivery(new BigDecimal(basicDataImportReqVO.getDelivery()));
         //解析数据
         ObjectMapper objectMapper = new ObjectMapper();
         // 将字符串转换为 JsonNode 对象
@@ -250,7 +264,10 @@ public class BasicDataServiceImpl implements BasicDataService {
                     for (Map.Entry<String, Object> entry : item.entrySet()) {
                         String key = entry.getKey();
                         Object value = entry.getValue();
-                        offerDescriptionBegin.append("\"" + key + "\":\"" + value + "\",");
+                        if (!key.equals("size") && !key.equals("thumbnails") && !key.equals("alt"))
+                        {
+                            offerDescriptionBegin.append("\"" + key + "\":\"" + value + "\",");
+                        }
                     }
 
                     // 删除最后一个逗号
@@ -281,6 +298,20 @@ public class BasicDataServiceImpl implements BasicDataService {
         basicDataDO.setImgUrl(imgUrl);
         basicDataDO.setUrl(basicDataImportReqVO.getUrl());
         basicDataDO.setDataJson(uploadUrl);
+
+        List<KeywordDO> keywordList = keywordMapper.selectList(new QueryWrapper<KeywordDO>().eq("deleted", 0));
+        for (KeywordDO keywordDO : keywordList) {
+            if (basicDataDO.getTitle().contains(keywordDO.getInfringementKeyword())){
+                ViolateProductDO violateProductDO = new ViolateProductDO();
+                BeanUtils.copyProperties(basicDataDO,violateProductDO);
+                violateProductDO.setViolateWord(keywordDO.getInfringementKeyword());
+                violateProductDO.setViolateId(keywordDO.getId());
+                violateProductMapper.insert(violateProductDO);
+                flag = true;
+                return flag;
+            }
+        }
+
         basicDataMapper.insert(basicDataDO);
         flag = true;
 
