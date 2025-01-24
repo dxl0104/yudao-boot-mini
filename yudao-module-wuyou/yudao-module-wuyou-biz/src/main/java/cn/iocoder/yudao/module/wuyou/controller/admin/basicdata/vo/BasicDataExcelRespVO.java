@@ -11,31 +11,24 @@ import java.time.LocalDateTime;
 @Schema(description = "管理后台 - 无忧基础数据 Response VO")
 @Data
 @ExcelIgnoreUnannotated
-public class BasicDataRespVO {
+public class BasicDataExcelRespVO {
 
-    @Schema(description = "id", requiredMode = Schema.RequiredMode.REQUIRED, example = "6221")
-    @ExcelProperty("id")
-    private Long id;
 
-    @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
-    @ExcelProperty("创建时间")
-    private LocalDateTime createTime;
 
     @Schema(description = "url", example = "https://www.iocoder.cn")
-    @ExcelProperty("url")
+    @ExcelProperty("产品链接")
     private String url;
+
+    @ExcelProperty("Offer ID")
+    private String offerId;
 
     @Schema(description = "快递费")
     @ExcelProperty("快递费")
     private BigDecimal delivery;
 
-    @Schema(description = "分类")
-    @ExcelProperty("分类")
-    private String category;
+    @ExcelProperty("Product ID (EAN/UPC/ISBN/ISSN/Allegro Product ID)")
+    private String productId;
 
-    @Schema(description = "url", example = "https://www.iocoder.cn")
-    @ExcelProperty("json")
-    private String dataJson;
 
     private String title;
 

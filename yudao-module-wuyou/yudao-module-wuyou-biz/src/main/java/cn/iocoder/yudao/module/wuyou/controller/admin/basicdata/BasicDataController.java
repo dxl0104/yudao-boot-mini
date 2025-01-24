@@ -146,7 +146,7 @@ public class BasicDataController {
     }
 
     @PostMapping("/importId")
-    public  CommonResult<BasicDataImportVO> importId(@RequestBody BasicDataImportReqVO basicDataImportReqVO){
+    public  CommonResult importId(@RequestBody BasicDataImportReqVO basicDataImportReqVO){
         BasicDataImportVO basicDataImportVO = basicDataService.importById(basicDataImportReqVO.getIdList());
         return success(basicDataImportVO);
     }
@@ -155,12 +155,12 @@ public class BasicDataController {
     * */
     @PostMapping("/importRes")
     @PermitAll
-    public  CommonResult<Boolean> importRes(@RequestBody BasicDataImportReqNewVO basicDataImportReqNewVO){
+    public  CommonResult importRes(@RequestBody BasicDataImportReqNewVO basicDataImportReqNewVO){
         //先校验是否已经插入
-        Boolean intoFlag = (Boolean) this.checkShop(basicDataImportReqNewVO).getData();
-        if (!intoFlag){
-            return error(DATA_INTO_ERROR);
-        }
+//        Boolean intoFlag = (Boolean) this.checkShop(basicDataImportReqNewVO).getData();
+//        if (!intoFlag){
+//            return error(DATA_INTO_ERROR);
+//        }
         Boolean flag = basicDataService.importRes(basicDataImportReqNewVO);
         if (flag){
             return success(flag);
@@ -173,8 +173,8 @@ public class BasicDataController {
     * */
     @PostMapping("/checkShop")
     @PermitAll
-    public  CommonResult<Boolean> checkShop(@RequestBody BasicDataImportReqNewVO basicDataImportReqNewVO){
-        boolean flag = false;
+    public  CommonResult checkShop(@RequestBody BasicDataImportReqNewVO basicDataImportReqNewVO){
+        Boolean flag = false;
         QueryWrapper<BasicDataDO> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("url",basicDataImportReqNewVO.getUrl()).eq("deleted",0);
         BasicDataDO basicDataDO = basicDataMapper.selectOne(queryWrapper);

@@ -19,6 +19,11 @@ import cn.iocoder.yudao.module.wuyou.dal.mysql.basicdata.BasicDataMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.producturl.ProductUrlMapper;
 import cn.iocoder.yudao.module.wuyou.utils.ErpUtils;
 import cn.iocoder.yudao.module.wuyou.utils.RedisUtil;
+import com.esotericsoftware.minlog.Log;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import lombok.Getter;
@@ -28,9 +33,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.cache.CacheUtils.buildAsyncReloadingCache;
@@ -135,9 +138,9 @@ public class BasicDataServiceImpl implements BasicDataService {
 
     @Override
     public Boolean importRes(BasicDataImportReqNewVO basicDataImportReqVO) {
-        boolean flag = false;
-        // 校验存在
-        validateFileConfigExists(28L);
+        Boolean flag = false;
+//        // 校验存在
+        validateFileConfigExists(new Long(28));
 
         // 文件内容转成 byte 数组
         byte[] fileContent = basicDataImportReqVO.getJson().getBytes(StandardCharsets.UTF_8);
@@ -145,18 +148,159 @@ public class BasicDataServiceImpl implements BasicDataService {
         try {
             // 生成唯一的文件名（以 .txt 结尾）
             String fileName = IdUtil.fastSimpleUUID() + ".txt";
-            uploadUrl = getFileClient(28L).upload(fileContent, fileName, "text/plain");
+            uploadUrl = getFileClient(new Long(28)).upload(fileContent, fileName, "text/plain");
         } catch (Exception e) {
             return flag;
         }
-        //存储数据，将数据转化为JSON的格式
+        //存储数据
         BasicDataDO basicDataDO = new BasicDataDO();
-        basicDataDO.setDataJson(uploadUrl);
+        //解析数据
+        ObjectMapper objectMapper = new ObjectMapper();
+        // 将字符串转换为 JsonNode 对象
+        try {
+            JsonNode jsonNode = objectMapper.readTree(basicDataImportReqVO.getJson());
+            // 获取 offerId 字段
+            JsonNode descriptionNode = jsonNode.path("Description");
+            String offerId = descriptionNode.path("offerId").asText();
+            basicDataDO.setOfferId(offerId);
+            // 获取ean字段
+            JsonNode showofferActions = jsonNode.path("showoffer.actions");
+            JsonNode offer = showofferActions.path("offer");
+            JsonNode seo = offer.path("seo");
+            String gtin = seo.path("gtin").asText();
+            if (!gtin.equals("null")) {
+                basicDataDO.setEan(gtin);
+            }
+            //获取title字段
+            JsonNode allegroShowofferStickyMenu = jsonNode.path("allegro.showoffer.stickyMenu");
+            JsonNode offer1 = allegroShowofferStickyMenu.path("offer");
+            String name = offer1.path("name").asText();
+            basicDataDO.setTitle(name);
+            //获取Product ID (EAN/UPC/ISBN/ISSN/Allegro Product ID)
+            JsonNode product = offer1.path("product");
+            String productId = product.path("id").asText();
+            basicDataDO.setProductId(productId);
+            //获取Quantity字段
+            JsonNode stock = offer1.path("stock");
+            String available = stock.path("available").asText();
+            basicDataDO.setQuantity(available);
+            //获取price价格
+            JsonNode sellingMode = offer1.path("sellingMode");
+            JsonNode buyNow = sellingMode.path("buyNow");
+            JsonNode price = buyNow.path("price");
+            JsonNode sale = price.path("sale");
+            String amount = sale.path("amount").asText();
+            basicDataDO.setPrice(amount);
+            //获取货币类型
+            String currency = sale.path("currency").asText();
+            basicDataDO.setCurrency(currency);
+            //获取主要商品类型
+            JsonNode breadcrumbs = offer1.path("breadcrumbs");
+            JsonNode itemAtIndex1 = breadcrumbs.get(1);
+            String mainCategory1 = itemAtIndex1.path("name").asText();
+            basicDataDO.setMainCategory1(mainCategory1);
+            JsonNode itemAtIndex2 = breadcrumbs.get(2);
+            String mainCategory2 = itemAtIndex2.path("name").asText();
+            basicDataDO.setMainCategory2(mainCategory2);
+            JsonNode itemAtIndex3 = breadcrumbs.get(3);
+            String mainCategory3 = itemAtIndex3.path("name").asText();
+            basicDataDO.setMainCategory3(mainCategory3);
+            //获取images
+            JsonNode images = offer1.path("images");
+            JsonNode imagesIndex1 = images.get(0);
+            int size = images.size();
+            StringBuffer stringBuffer = new StringBuffer();
+
+            for (int i = 0; i < size; i++) {
+                String url = images.get(i).path("url").asText();
+
+                // 判断是否是最后一个元素，如果是，直接拼接 url，否则加上分隔符 "|"
+                if (i < size - 1) {
+                    stringBuffer.append(url).append("|");
+                } else {
+                    stringBuffer.append(url);
+                }
+            }
+            basicDataDO.setImgUrl(stringBuffer.toString());
+
+            String imgUrl = imagesIndex1.path("url").asText();
+            //设置商品主图
+            basicDataDO.setMainUrl(imgUrl);
+            //Offer Description
+            StringBuilder offerDescriptionBegin = new StringBuilder("{\"sections\":[");
+            // 获取 standardizedDescription 和 sections
+            JsonNode standardizedDescription = descriptionNode.path("standardizedDescription");
+            JsonNode standardizedDescriptionItem = standardizedDescription.path("sections");
+            for (int i = 0; i < standardizedDescriptionItem.size(); i++) {
+                if (i > 0) offerDescriptionBegin.append(",");  // 处理 sections 数组中的多个对象
+                offerDescriptionBegin.append("{\"items\":[");
+
+                JsonNode jsonNode1 = standardizedDescriptionItem.get(i);
+                JsonNode items = jsonNode1.path("items");
+
+                for (int j = 0; j < items.size(); j++) {
+                    if (j > 0) offerDescriptionBegin.append(",");  // 处理 items 数组中的多个对象
+                    JsonNode itemNode = items.get(j);
+                    offerDescriptionBegin.append("{");
+
+                    // 将 itemNode 转换为 Map
+                    Map<String, Object> item = objectMapper.convertValue(itemNode, LinkedHashMap.class);
+
+                    // 遍历 Map
+                    for (Map.Entry<String, Object> entry : item.entrySet()) {
+                        String key = entry.getKey();
+                        Object value = entry.getValue();
+                        offerDescriptionBegin.append("\"" + key + "\":\"" + value + "\",");
+                    }
+
+                    // 删除最后一个逗号
+                    if (offerDescriptionBegin.charAt(offerDescriptionBegin.length() - 1) == ',') {
+                        offerDescriptionBegin.deleteCharAt(offerDescriptionBegin.length() - 1);
+                    }
+
+                    offerDescriptionBegin.append("}");
+                }
+
+                offerDescriptionBegin.append("]}");
+            }
+
+            if (offerDescriptionBegin.charAt(offerDescriptionBegin.length() - 1) == ',') {
+                offerDescriptionBegin.deleteCharAt(offerDescriptionBegin.length() - 1);
+            }
+
+            offerDescriptionBegin.append("]}");
+            basicDataDO.setOfferDescription(offerDescriptionBegin.toString());
+            //上传到oss 中
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        String offerDesc = uploadOss(basicDataDO.getOfferDescription());
+        basicDataDO.setOfferDescription(offerDesc);
+        String imgUrl = uploadOss(basicDataDO.getImgUrl());
+        basicDataDO.setImgUrl(imgUrl);
         basicDataDO.setUrl(basicDataImportReqVO.getUrl());
+        basicDataDO.setDataJson(uploadUrl);
         basicDataMapper.insert(basicDataDO);
         flag = true;
 
         return flag;
+    }
+
+    public String uploadOss(String data) {
+//        validateFileConfigExists(new Long(28));
+        // 文件内容转成 byte 数组
+        byte[] fileContent = data.getBytes(StandardCharsets.UTF_8);
+        String uploadUrl = "";
+
+        // 生成唯一的文件名（以 .txt 结尾）
+        String fileName = IdUtil.fastSimpleUUID() + ".txt";
+        try {
+            uploadUrl = getFileClient(new Long(28)).upload(fileContent, fileName, "text/plain");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return uploadUrl;
     }
 
     public FileClient getFileClient(Long id) {
@@ -234,14 +378,13 @@ public class BasicDataServiceImpl implements BasicDataService {
         for (BasicDataDO basicDataDO : list) {
             CookieDatedRes cookieDatedRes = ErpUtils.saveProduct(basicDataDO.getDataJson(), basicDataDO.getUrl(), 1, cookie);
             //保存成功
-            if (cookieDatedRes.isSuccess()){
+            if (cookieDatedRes.isSuccess()) {
                 successCount++;
                 ImportSuccessRes successRes = new ImportSuccessRes();
                 successRes.setId(basicDataDO.getId());
                 successRes.setUrl(basicDataDO.getUrl());
                 importSuccessResList.add(successRes);
-            }
-            else {
+            } else {
                 errorCount++;
                 ImportErrorRes importErrorRes = new ImportErrorRes();
                 importErrorRes.setId(basicDataDO.getId());
