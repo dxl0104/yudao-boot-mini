@@ -195,16 +195,23 @@ public class BasicDataServiceImpl implements BasicDataService {
             String currency = sale.path("currency").asText();
             basicDataDO.setCurrency(currency);
             //获取主要商品类型
+            // 获取 breadcrumbs 数组中的项
             JsonNode breadcrumbs = offer1.path("breadcrumbs");
+
+// 获取并设置 MainCategory1
             JsonNode itemAtIndex1 = breadcrumbs.get(1);
             String mainCategory1 = itemAtIndex1.path("name").asText();
-            basicDataDO.setMainCategory1(mainCategory1);
+            basicDataDO.setMainCategory1(new String(mainCategory1.getBytes(), StandardCharsets.UTF_8)); // 确保是 UTF-8 编码
+
+// 获取并设置 MainCategory2
             JsonNode itemAtIndex2 = breadcrumbs.get(2);
             String mainCategory2 = itemAtIndex2.path("name").asText();
-            basicDataDO.setMainCategory2(mainCategory2);
+            basicDataDO.setMainCategory2(new String(mainCategory2.getBytes(), StandardCharsets.UTF_8)); // 确保是 UTF-8 编码
+
+// 获取并设置 MainCategory3
             JsonNode itemAtIndex3 = breadcrumbs.get(3);
             String mainCategory3 = itemAtIndex3.path("name").asText();
-            basicDataDO.setMainCategory3(mainCategory3);
+            basicDataDO.setMainCategory3(new String(mainCategory3.getBytes(), StandardCharsets.UTF_8)); // 确保是 UTF-8 编码
             //获取images
             JsonNode images = offer1.path("images");
             JsonNode imagesIndex1 = images.get(0);
