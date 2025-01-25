@@ -16,6 +16,7 @@ import cn.iocoder.yudao.module.wuyou.dal.mysql.producturl.ProductUrlMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.task.TaskMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.taskpagedetail.TaskPageDetailMapper;
 import cn.iocoder.yudao.module.wuyou.service.basicdata.BasicDataService;
+import cn.iocoder.yudao.module.wuyou.utils.IpUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.annotation.security.PermitAll;
+import javax.servlet.http.HttpServletRequest;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -57,16 +59,30 @@ public class CollectController {
     private DeviceMapper deviceMapper;
 
     @Resource
+    private IpUtils ipUtils;
+
+    @Resource
     private BasicDataService basicDataService;
 
     @PostMapping("/getData")
     @Operation(summary = "获取需要采集的数据")
-    @Parameter(name = "ip", description = "ip", required = true, example = "47.79.20.197")
     @PermitAll
-    public CommonResult<List<TaskPageResVO>> getCollectData(@RequestParam("ip") String ipAddress) {
-        DeviceDO deviceDO = deviceMapper.selectOne(DeviceDO::getIpAddress, ipAddress);
+    public CommonResult<List<TaskPageResVO>> getCollectData(HttpServletRequest request) {
+        //没有这个ip就新建一个
+        String clientIp = ipUtils.getClientIp(request);
+        Long deviceId = null;
+        DeviceDO deviceDO = deviceMapper.selectOne(DeviceDO::getIpAddress, clientIp);
+        if (deviceDO==null){
+            DeviceDO device = new DeviceDO();
+            device.setIpAddress(clientIp);
+            deviceMapper.insert(device);
+            deviceId = device.getId();
+        }
+        else {
+            deviceId = deviceDO.getId();
+        }
         // 找到可以进行分配的任务
-        List<TaskDO> taskDOList = taskMapper.selectList(new QueryWrapper<TaskDO>().in("status", 0, 1).orderByAsc("create_time"));
+        List<TaskDO> taskDOList = taskMapper.selectList(new QueryWrapper<TaskDO>().in("status", 0, 1).orderByDesc("create_time"));
 
         // 用来存储最终的分页数据
         List<TaskPageDetailDO> taskPageDetailDOS = new ArrayList<>();
@@ -111,13 +127,13 @@ public class CollectController {
                     List<TaskPageResVO> taskPageResVOS = new ArrayList<>();
                     taskPageResVOS.add(taskPageResVO);
                     for (ProductUrlDO productUrlDO : list) {
-                        productUrlDO.setDeviceId(deviceDO.getId());
+                        productUrlDO.setDeviceId(deviceId);
                         productUrlDO.setAssignedAt(LocalDateTime.now());
                         //设置为采集中
                         productUrlDO.setProcessFlag(1);
                     }
                     productUrlMapper.updateBatch(list);
-                    //详情任务 设置为已分配
+                    //详情任务
                     task.setStatus(2);
                     taskMapper.updateById(task);
                     return success(taskPageResVOS);
@@ -127,7 +143,7 @@ public class CollectController {
             }
         }
         for (TaskPageDetailDO taskPageDetailDO : taskPageDetailDOS) {
-            taskPageDetailDO.setDeviceId(deviceDO.getId());
+            taskPageDetailDO.setDeviceId(deviceId);
             //设置为采集中
             taskPageDetailDO.setStatus(1);
             taskPageDetailDO.setAssignedAt(LocalDateTime.now());
