@@ -3,9 +3,9 @@ package cn.iocoder.yudao.module.wuyou.utils;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
+
 @Component
 public class IpUtils {
-
     /**
      * 获取客户端真实 IP 地址
      */

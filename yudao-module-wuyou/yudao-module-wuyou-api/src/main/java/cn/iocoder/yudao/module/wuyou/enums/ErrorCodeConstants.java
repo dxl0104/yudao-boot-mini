@@ -19,4 +19,10 @@ public interface ErrorCodeConstants {
     ErrorCode DATA_INTO_REPEAT = new ErrorCode(10014, "数据重复插入");
     ErrorCode DATA_INTO_ERROR = new ErrorCode(10015, "数据插入异常");
     ErrorCode VIOLATE_PRODUCT_NOT_EXISTS = new ErrorCode(10016, "侵权商品不存在");
+    ErrorCode CATEGORY_NOT_EXISTS = new ErrorCode(10016, "数据类别不存在");
+    ErrorCode CATEGORY_EXITS_CHILDREN = new ErrorCode(10017, "存在存在子数据类别，无法删除");
+    ErrorCode CATEGORY_PARENT_NOT_EXITS = new ErrorCode(10018,"父级数据类别不存在");
+    ErrorCode CATEGORY_PARENT_ERROR = new ErrorCode(10019, "不能设置自己为父数据类别");
+    ErrorCode CATEGORY_ZH_NAME_DUPLICATE = new ErrorCode(10020, "已经存在该中文名称的数据类别");
+    ErrorCode CATEGORY_PARENT_IS_CHILD = new ErrorCode(10021, "不能设置自己的子Category为父Category");
 }

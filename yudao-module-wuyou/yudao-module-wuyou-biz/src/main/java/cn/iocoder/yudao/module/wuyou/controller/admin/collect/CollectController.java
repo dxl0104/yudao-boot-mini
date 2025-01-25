@@ -1,7 +1,10 @@
 package cn.iocoder.yudao.module.wuyou.controller.admin.collect;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataImportReqNewVO;
+import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.BasicDataRespVO;
 import cn.iocoder.yudao.module.wuyou.controller.admin.collect.vo.CollectData;
 import cn.iocoder.yudao.module.wuyou.controller.admin.collect.vo.TaskPageResVO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.device.DeviceDO;
@@ -15,28 +18,26 @@ import cn.iocoder.yudao.module.wuyou.dal.mysql.taskpagedetail.TaskPageDetailMapp
 import cn.iocoder.yudao.module.wuyou.service.basicdata.BasicDataService;
 import cn.iocoder.yudao.module.wuyou.utils.IpUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.annotation.security.PermitAll;
 import javax.servlet.http.HttpServletRequest;
+
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.error;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 @Tag(name = "管理后台 - 采集器请求接口")
 @RestController
@@ -58,21 +59,28 @@ public class CollectController {
     private DeviceMapper deviceMapper;
 
     @Resource
-    private BasicDataService basicDataService;
+    private IpUtils ipUtils;
 
     @Resource
-    private IpUtils ipUtils;
+    private BasicDataService basicDataService;
 
     @PostMapping("/getData")
     @Operation(summary = "获取需要采集的数据")
     @PermitAll
     public CommonResult<List<TaskPageResVO>> getCollectData(HttpServletRequest request) {
-        //获取ip
-        String ipAddress = ipUtils.getClientIp(request);
-        DeviceDO deviceDO = deviceMapper.selectOne(DeviceDO::getIpAddress, ipAddress);
-       if (deviceDO==null){
-           return error(500, "采集器不存在");
-       }
+        //没有这个ip就新建一个
+        String clientIp = ipUtils.getClientIp(request);
+        Long deviceId = null;
+        DeviceDO deviceDO = deviceMapper.selectOne(DeviceDO::getIpAddress, clientIp);
+        if (deviceDO==null){
+            DeviceDO device = new DeviceDO();
+            device.setIpAddress(clientIp);
+            deviceMapper.insert(device);
+            deviceId = device.getId();
+        }
+        else {
+            deviceId = deviceDO.getId();
+        }
         // 找到可以进行分配的任务
         List<TaskDO> taskDOList = taskMapper.selectList(new QueryWrapper<TaskDO>().in("status", 0, 1).orderByAsc("create_time"));
        if (taskDOList.isEmpty()){
@@ -122,13 +130,13 @@ public class CollectController {
                     List<TaskPageResVO> taskPageResVOS = new ArrayList<>();
                     taskPageResVOS.add(taskPageResVO);
                     for (ProductUrlDO productUrlDO : list) {
-                        productUrlDO.setDeviceId(deviceDO.getId());
+                        productUrlDO.setDeviceId(deviceId);
                         productUrlDO.setAssignedAt(LocalDateTime.now());
                         //设置为采集中
                         productUrlDO.setProcessFlag(1);
                     }
                     productUrlMapper.updateBatch(list);
-                    //详情任务 设置为已分配
+                    //详情任务
                     task.setStatus(2);
                     taskMapper.updateById(task);
                     return success(taskPageResVOS);
@@ -138,7 +146,7 @@ public class CollectController {
             }
         }
         for (TaskPageDetailDO taskPageDetailDO : taskPageDetailDOS) {
-            taskPageDetailDO.setDeviceId(deviceDO.getId());
+            taskPageDetailDO.setDeviceId(deviceId);
             //设置为采集中
             taskPageDetailDO.setStatus(1);
             taskPageDetailDO.setAssignedAt(LocalDateTime.now());

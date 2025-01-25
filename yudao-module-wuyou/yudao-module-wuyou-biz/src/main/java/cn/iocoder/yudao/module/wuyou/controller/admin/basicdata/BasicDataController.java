@@ -180,6 +180,7 @@ public class BasicDataController {
     }
 
     @PostMapping("/getOneProductDetail")
+    @PermitAll
     public CommonResult getOneProductDetail(@RequestBody BasicDataRqeCategoryVO basicDataRqeCategoryVO) {
         log.info("返回商品详情数据{}", getOneProduct(basicDataRqeCategoryVO.getSourceUrl(), basicDataRqeCategoryVO.getCookie()));
         return getOneProduct(basicDataRqeCategoryVO.getSourceUrl(), basicDataRqeCategoryVO.getCookie());

@@ -18,6 +18,7 @@ import java.util.List;
 
 /**
  * 定时更改任务的状态
+ * 分页任务 如果没有全部分配 有子分页任务已经完成 不会更改状态  而是要等全部分配后才会改变状态
  */
 @Component
 public class ChangeTaskStatusJob implements JobHandler {
@@ -55,8 +56,36 @@ public class ChangeTaskStatusJob implements JobHandler {
                 taskMapper.updateById(taskDO);
             }
         }
-        //status=2 表示已全部分配  查询商品详情任务
-        List<TaskDO> detailList = taskMapper.selectList(new QueryWrapper<TaskDO>().eq("task_type", 1).in("status", 2));
+
+        //分页任务判断是否完成  全部分配->部分完成->已完成
+        List<TaskDO> selectList = taskMapper.selectList(new QueryWrapper<TaskDO>().eq("task_type", 0).in("status", 2,3));
+        for (TaskDO taskDO : selectList) {
+            Long taskId = taskDO.getId();
+            Integer pages = taskDO.getPages();
+            //子页面完成的数量
+            List<TaskPageDetailDO> taskPageDetailDOS = taskPageDetailMapper.selectList(new QueryWrapper<TaskPageDetailDO>().eq("task_id", taskId).eq("status",2));
+            if (!taskPageDetailDOS.isEmpty()) {
+                //说明列表已经全部完成
+                if (taskPageDetailDOS.size() == pages) {
+                    //全部分配和部分完成->已完成
+                    if (taskDO.getStatus() == 2 || taskDO.getStatus() == 3) {
+                        taskDO.setStatus(4);
+                    }
+                }
+                //全部分配->部分完成
+                else if (taskPageDetailDOS.size() < pages) {
+                    if (taskDO.getStatus() == 2) {
+                        taskDO.setStatus(3);
+                    }
+                }
+                taskMapper.updateById(taskDO);
+            }
+        }
+
+
+
+        //查询商品详情任务 status=2 表示已全部分配 3表示部分完成   详情任务不用从待分配变成部分分配 因为详情任务是一次性给  从未分配变成全部分配
+        List<TaskDO> detailList = taskMapper.selectList(new QueryWrapper<TaskDO>().eq("task_type", 1).in("status", 2,3));
         for (TaskDO taskDO : detailList) {
             String detailIds = taskDO.getDetailIds();
             List<Long> detailIdsList = objectMapper.readValue(detailIds, new TypeReference<List<Long>>() {
