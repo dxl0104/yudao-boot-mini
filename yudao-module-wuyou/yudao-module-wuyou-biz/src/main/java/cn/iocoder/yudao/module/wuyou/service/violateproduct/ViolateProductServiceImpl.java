@@ -84,6 +84,7 @@ public class ViolateProductServiceImpl implements ViolateProductService {
         ViolateProductDO violateProductDO = violateProductMapper.selectById(id);
         BasicDataDO basicDataDO = new BasicDataDO();
         BeanUtils.copyProperties(violateProductDO,basicDataDO);
+        basicDataDO.setId(null);
         basicDataMapper.insert(basicDataDO);
         // 删除
         violateProductMapper.deleteById(id);
