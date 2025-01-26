@@ -1,6 +1,5 @@
 package cn.iocoder.yudao.module.wuyou.service.basicdata;
 
-import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.pojo.CookieDatedRes;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -24,14 +23,13 @@ import cn.iocoder.yudao.module.wuyou.dal.mysql.violateproduct.ViolateProductMapp
 import cn.iocoder.yudao.module.wuyou.utils.ErpUtils;
 import cn.iocoder.yudao.module.wuyou.utils.RedisUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.esotericsoftware.minlog.Log;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import lombok.Getter;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -273,7 +271,9 @@ public class BasicDataServiceImpl implements BasicDataService {
                         Object value = entry.getValue();
                         if (!key.equals("size") && !key.equals("thumbnails") && !key.equals("alt"))
                         {
-                            offerDescriptionBegin.append("\"" + key + "\":\"" + value + "\",");
+                            //转移特殊字符 /n /t /&
+                            String valueStr = StringEscapeUtils.escapeJson(String.valueOf(value));
+                            offerDescriptionBegin.append("\"" + key + "\":\"" + valueStr + "\",");
                         }
                     }
 

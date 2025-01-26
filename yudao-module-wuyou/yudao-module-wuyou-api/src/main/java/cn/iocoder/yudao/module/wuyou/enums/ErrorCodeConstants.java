@@ -25,4 +25,5 @@ public interface ErrorCodeConstants {
     ErrorCode CATEGORY_PARENT_ERROR = new ErrorCode(10019, "不能设置自己为父数据类别");
     ErrorCode CATEGORY_ZH_NAME_DUPLICATE = new ErrorCode(10020, "已经存在该中文名称的数据类别");
     ErrorCode CATEGORY_PARENT_IS_CHILD = new ErrorCode(10021, "不能设置自己的子Category为父Category");
+    ErrorCode DELIVERY_IS_NULL = new ErrorCode(10022, "获取快递费错误");
 }
