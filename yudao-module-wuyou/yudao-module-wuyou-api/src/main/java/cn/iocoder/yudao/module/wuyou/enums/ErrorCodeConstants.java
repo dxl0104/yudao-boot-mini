@@ -26,4 +26,7 @@ public interface ErrorCodeConstants {
     ErrorCode CATEGORY_ZH_NAME_DUPLICATE = new ErrorCode(10020, "已经存在该中文名称的数据类别");
     ErrorCode CATEGORY_PARENT_IS_CHILD = new ErrorCode(10021, "不能设置自己的子Category为父Category");
     ErrorCode DELIVERY_IS_NULL = new ErrorCode(10022, "获取快递费错误");
+    ErrorCode DISCOUNT_RULES_NOT_EXISTS = new ErrorCode(10023, "折扣规则不存在");
+    ErrorCode DELIVERY_CONFIG_NOT_EXISTS = new ErrorCode(10024, "快递费归档不存在");
+
 }

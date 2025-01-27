@@ -53,6 +53,8 @@ public class BasicDataPageReqVO extends PageParam {
 
     private String productId;
 
+    private String type;
+
 
 
 }

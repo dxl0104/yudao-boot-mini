@@ -17,6 +17,7 @@ import cn.iocoder.yudao.module.wuyou.dal.mysql.basicdata.BasicDataMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.keyword.KeywordMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.producturl.ProductUrlMapper;
 import cn.iocoder.yudao.module.wuyou.service.basicdata.BasicDataService;
+
 import javax.annotation.security.PermitAll;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -39,6 +40,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -109,34 +111,39 @@ public class BasicDataController {
         return success(BeanUtils.toBean(pageResult, BasicDataRespVO.class));
     }
 
-    @PostMapping ("/export-excel")
-    @Operation(summary = "导出无忧基础数据 Excel")
+    @PostMapping("/export-excel")
+    @Operation(summary = "导出allegro基础数据 Excel")
     @PreAuthorize("@ss.hasPermission('wuyou:basic-data:export')")
     @ApiAccessLog(operateType = EXPORT)
     public void exportBasicDataExcel(@Valid @RequestBody BasicDataPageReqVO pageReqVO,
                                      HttpServletResponse response) throws IOException {
-        List<String> ids = pageReqVO.getIds();
-        List<BasicDataDO> dataList = basicDataMapper.selectList(new QueryWrapper<BasicDataDO>().in("id", ids));
+        List<BasicDataDO> dataList = new ArrayList<>();
+        if (pageReqVO.getType().equals("select")) {
+            List<String> ids = pageReqVO.getIds();
+            dataList = basicDataMapper.selectList(new QueryWrapper<BasicDataDO>().in("id", ids));
+        } else if (pageReqVO.getType().equals("all")) {
+            pageReqVO.setPageSize(PageParam.PAGE_SIZE_NONE);
+            dataList = basicDataService.getBasicDataPage(pageReqVO).getList();
+        }
         for (BasicDataDO basicDataDO : dataList) {
             String offerDescription = basicDataDO.getOfferDescription();
-            offerDescription= getUrlData(offerDescription);
-            if (!offerDescription.equals("")){
+            offerDescription = getUrlData(offerDescription);
+             if (!offerDescription.equals("")) {
                 basicDataDO.setOfferDescription(offerDescription);
             }
             String imgUrl = basicDataDO.getImgUrl();
-            imgUrl= getUrlData(imgUrl);
-            if (!imgUrl.equals("")){
+            imgUrl = getUrlData(imgUrl);
+            if (!imgUrl.equals("")) {
                 basicDataDO.setImgUrl(imgUrl);
             }
         }
-//        pageReqVO.setPageSize(PageParam.PAGE_SIZE_NONE);
-//        List<BasicDataDO> list = basicDataService.getBasicDataPage(pageReqVO).getList();
+
         // 导出 Excel
         ExcelUtils.write(response, "无忧基础数据.xls", "数据", BasicDataExcelRespVO.class,
                 BeanUtils.toBean(dataList, BasicDataExcelRespVO.class));
     }
 
-    public String getUrlData(String fileUrl){
+    public String getUrlData(String fileUrl) {
         try {
             // 创建 URL 对象
             URL url = new URL(fileUrl);
@@ -176,7 +183,7 @@ public class BasicDataController {
 
     @PostMapping("/saveProduct")
     public String Save(@RequestBody BasicDataReqVO basicDataReqVO) {
-        return SaveProduct(basicDataReqVO.getHtml(), basicDataReqVO.getSourceUrl(), basicDataReqVO.getSourcePlatform(),basicDataReqVO.getCookie());
+        return SaveProduct(basicDataReqVO.getHtml(), basicDataReqVO.getSourceUrl(), basicDataReqVO.getSourcePlatform(), basicDataReqVO.getCookie());
     }
 
     @PostMapping("/getOneProductDetail")
@@ -193,40 +200,42 @@ public class BasicDataController {
     }
 
     @PostMapping("/importId")
-    public  CommonResult importId(@RequestBody BasicDataImportReqVO basicDataImportReqVO){
+    public CommonResult importId(@RequestBody BasicDataImportReqVO basicDataImportReqVO) {
         BasicDataImportVO basicDataImportVO = basicDataService.importById(basicDataImportReqVO.getIdList());
         return success(basicDataImportVO);
     }
+
     /*
-    * 导入商品数据
-    * */
+     * 导入商品数据
+     * */
     @PostMapping("/importRes")
     @PermitAll
-    public  CommonResult importRes(@RequestBody BasicDataImportReqNewVO basicDataImportReqNewVO){
+    public CommonResult importRes(@RequestBody BasicDataImportReqNewVO basicDataImportReqNewVO) {
         //先校验是否已经插入
         Boolean intoFlag = (Boolean) this.checkShop(basicDataImportReqNewVO).getData();
-        if (!intoFlag){
+        if (!intoFlag) {
             return error(DATA_INTO_ERROR);
         }
         Boolean flag = basicDataService.importRes(basicDataImportReqNewVO);
-        if (flag){
+        if (flag) {
             return success(flag);
-        }else{
+        } else {
             return error(DATA_INTO_REPEAT);
         }
     }
+
     /*
-    * 校验商品是否已经重复插入
-    * */
+     * 校验商品是否已经重复插入
+     * */
     @PostMapping("/checkShop")
     @PermitAll
-    public  CommonResult checkShop(@RequestBody BasicDataImportReqNewVO basicDataImportReqNewVO){
+    public CommonResult checkShop(@RequestBody BasicDataImportReqNewVO basicDataImportReqNewVO) {
         Boolean flag = false;
         QueryWrapper<BasicDataDO> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("url",basicDataImportReqNewVO.getUrl()).eq("deleted",0);
+        queryWrapper.eq("url", basicDataImportReqNewVO.getUrl()).eq("deleted", 0);
         BasicDataDO basicDataDO = basicDataMapper.selectOne(queryWrapper);
         //true可插入  false不可插入
-        if (basicDataDO == null){
+        if (basicDataDO == null) {
             flag = true;
         }
 
@@ -336,9 +345,9 @@ public class BasicDataController {
             if (responseCode == 403) {
                 return error(GET_CAGETORY_NOT_EXISTS);
             }
-            if (responseCode ==429){
+            if (responseCode == 429) {
                 String responseMessage = connection.getResponseMessage();
-                error(429,responseMessage);
+                error(429, responseMessage);
 
             }
             // 读取响应内容
@@ -362,7 +371,7 @@ public class BasicDataController {
         }
     }
 
-    public String SaveProduct(String html, String sourceUrl, Integer sourcePlatform,String cookie) {
+    public String SaveProduct(String html, String sourceUrl, Integer sourcePlatform, String cookie) {
         try {
             // URL地址
             String url = "https://www.51selling.com/collect/CollectBox/SaveProduct";
