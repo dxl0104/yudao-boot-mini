@@ -13,10 +13,12 @@ import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.*;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.basicdata.BasicDataDO;
+import cn.iocoder.yudao.module.wuyou.dal.dataobject.deliveryempty.DeliveryEmptyDO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.keyword.KeywordDO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.producturl.ProductUrlDO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.violateproduct.ViolateProductDO;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.basicdata.BasicDataMapper;
+import cn.iocoder.yudao.module.wuyou.dal.mysql.deliveryempty.DeliveryEmptyMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.keyword.KeywordMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.producturl.ProductUrlMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.violateproduct.ViolateProductMapper;
@@ -80,6 +82,9 @@ public class BasicDataServiceImpl implements BasicDataService {
 
     @Resource
     private ViolateProductMapper violateProductMapper;
+
+    @Resource
+    private DeliveryEmptyMapper deliveryEmptyMapper;
 
     /**
      * {@link FileClient} 缓存，通过它异步刷新 fileClientFactory
@@ -306,6 +311,16 @@ public class BasicDataServiceImpl implements BasicDataService {
         basicDataDO.setUrl(basicDataImportReqVO.getUrl());
         basicDataDO.setDataJson(uploadUrl);
 
+        //快递费用为0 则进行插入
+        if (basicDataDO.getDelivery().compareTo(BigDecimal.ZERO)==0){
+            //快递为0
+            DeliveryEmptyDO deliveryEmptyDO = new DeliveryEmptyDO();
+            BeanUtils.copyProperties(basicDataDO,deliveryEmptyDO);
+            //数据库自己生成
+            deliveryEmptyDO.setId(null);
+            deliveryEmptyMapper.insert(deliveryEmptyDO);
+            return true;
+        }
         List<KeywordDO> keywordList = keywordMapper.selectList(new QueryWrapper<KeywordDO>().eq("deleted", 0));
         for (KeywordDO keywordDO : keywordList) {
             if (basicDataDO.getTitle().contains(keywordDO.getInfringementKeyword())){
@@ -313,6 +328,7 @@ public class BasicDataServiceImpl implements BasicDataService {
                 BeanUtils.copyProperties(basicDataDO,violateProductDO);
                 violateProductDO.setViolateWord(keywordDO.getInfringementKeyword());
                 violateProductDO.setViolateId(keywordDO.getId());
+                violateProductDO.setId(null);
                 violateProductMapper.insert(violateProductDO);
                 flag = true;
                 return flag;

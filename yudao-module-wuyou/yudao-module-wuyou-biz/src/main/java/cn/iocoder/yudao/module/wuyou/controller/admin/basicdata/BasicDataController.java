@@ -25,10 +25,12 @@ import cn.iocoder.yudao.module.wuyou.service.basicdata.BasicDataService;
 import javax.annotation.security.PermitAll;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.exceptions.PersistenceException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -42,9 +44,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -138,7 +138,7 @@ public class BasicDataController {
         for (BasicDataDO basicDataDO : dataList) {
             String offerDescription = basicDataDO.getOfferDescription();
             offerDescription = getUrlData(offerDescription);
-             if (!offerDescription.equals("")) {
+            if (!offerDescription.equals("")) {
                 basicDataDO.setOfferDescription(offerDescription);
             }
             String imgUrl = basicDataDO.getImgUrl();
@@ -171,16 +171,17 @@ public class BasicDataController {
 
     /**
      * 进行物流归档
+     *
      * @param delivery
      * @return
      */
-    public Integer calDelivery(BigDecimal delivery){
+    public Integer calDelivery(BigDecimal delivery) {
         List<DeliveryConfigDO> configDOList = deliveryConfigMapper.selectList(new QueryWrapper<DeliveryConfigDO>().eq("deleted", 0));
         for (DeliveryConfigDO deliveryConfigDO : configDOList) {
             //统一左闭右开
-           if (delivery.compareTo(deliveryConfigDO.getStartMoney())>=0 && delivery.compareTo(deliveryConfigDO.getEndMoney())<0){
-               return deliveryConfigDO.getLevel();
-           }
+            if (delivery.compareTo(deliveryConfigDO.getStartMoney()) >= 0 && delivery.compareTo(deliveryConfigDO.getEndMoney()) < 0) {
+                return deliveryConfigDO.getLevel();
+            }
         }
         //找不到档位就return -1
         return -1;
@@ -191,7 +192,7 @@ public class BasicDataController {
         BigDecimal shippingDiscount = BigDecimal.ZERO;
 
         //查询出所有的规则
-        List<DiscountRulesDO> discountRules = discountRulesMapper.selectList(new QueryWrapper<DiscountRulesDO>().eq("deleted",0));
+        List<DiscountRulesDO> discountRules = discountRulesMapper.selectList(new QueryWrapper<DiscountRulesDO>().eq("deleted", 0));
 
         // 根据商品总价查询适用的折扣规则
         for (DiscountRulesDO rule : discountRules) {
@@ -563,8 +564,9 @@ public class BasicDataController {
 
     @PostMapping("/query")
     @Operation(summary = "查询无忧侵权词分页数据")
-    public String query(@RequestBody KeyWordQueryVO keyWordQueryVO) {
-        try {
+    @PermitAll
+    public CommonResult query(@RequestBody KeyWordQueryVO keyWordQueryVO) throws IOException {
+        for (int i = 1; i <= 33; i++) {
             // 请求URL
             URL url = new URL("https://www.51selling.com/sale/ShelvesInfringementKeyword");
 
@@ -577,7 +579,7 @@ public class BasicDataController {
             connection.setRequestProperty("Accept", "application/json, text/javascript, */*; q=0.01");
             connection.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6");
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-            connection.setRequestProperty("Cookie", "SessID=xe2gyencjg134o0z3anbhyan; Hm_lvt_97745fd517881ba15b518da92c105831=1736093172,1736570997,1736579851,1736605293; HMACCOUNT=0D20F43D5F4808BE; Hm_lpvt_97745fd517881ba15b518da92c105831=1736613877; usrid=4+EcjTy+fLo=; tk=126453f7-d644-42c8-a835-40aad9f0b258");
+            connection.setRequestProperty("Cookie", "SessID=ahth0vgdqyx1lr441o5nal15; Hm_lvt_97745fd517881ba15b518da92c105831=1737946116,1737995494; Hm_lpvt_97745fd517881ba15b518da92c105831=1737995494; HMACCOUNT=4433BE37E80AB56B; usrid=nYas788ClX4=; tk=29cf9c84-8fc2-4253-bec1-8cd6c544b9bc");
             connection.setRequestProperty("Origin", "https://www.51selling.com");
             connection.setRequestProperty("Referer", "https://www.51selling.com/sale/shelvesinfringementkeyword");
             connection.setRequestProperty("Sec-CH-UA", "\"Microsoft Edge\";v=\"131\", \"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"");
@@ -593,11 +595,11 @@ public class BasicDataController {
             connection.setDoOutput(true);
 
             // 请求体数据
-            String data = "pageIndex=" + keyWordQueryVO.getPageIndex() + "&pageSize=" + keyWordQueryVO.getPageSize() + "&orderBy=Id+desc&search=%E2%80%A0%E2%80%A1%E2%80%A0%E2%80%A1%E4%BE%B5%E6%9D%83%E5%85%B3%E9%94%AE%E8%AF%8D%E2%80%A0%E6%B7%BB%E5%8A%A0%E6%97%B6%E9%97%B4%E2%80%A1%E2%80%A0%E2%80%A1%E2%80%A0";
+            String data = "pageIndex=" + i + "&pageSize=" + keyWordQueryVO.getPageSize() + "&orderBy=Id+desc&search=%E2%80%A0%E2%80%A1%E2%80%A0%E2%80%A1%E4%BE%B5%E6%9D%83%E5%85%B3%E9%94%AE%E8%AF%8D%E2%80%A0%E6%B7%BB%E5%8A%A0%E6%97%B6%E9%97%B4%E2%80%A1%E2%80%A0%E2%80%A1%E2%80%A0";
 
             // 写入请求体
             try (OutputStream os = connection.getOutputStream()) {
-                byte[] input = data.getBytes("utf-8");
+                byte[] input = data.getBytes(StandardCharsets.UTF_8);
                 os.write(input, 0, input.length);
             }
 
@@ -606,21 +608,37 @@ public class BasicDataController {
             System.out.println("Response Code: " + statusCode);
 
             // 获取响应内容
-            try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
                 String inputLine;
                 StringBuilder response = new StringBuilder();
                 while ((inputLine = in.readLine()) != null) {
                     response.append(inputLine);
                 }
                 System.out.println("Response Body: " + response.toString());
+                ObjectMapper objectMapper = new ObjectMapper();
+                KeyWordRes keyWordRes = objectMapper.readValue(response.toString(), KeyWordRes.class);
+                List<Row> rows = keyWordRes.getData().getRows();
+                ArrayList<KeywordDO> keywordDOS = new ArrayList<>();
+                for (Row row : rows) {
+                    try {
+                        String infringementKeyword = row.getInfringementKeyword();
+                        KeywordDO keywordDO = new KeywordDO();
+                        keywordDO.setInfringementKeyword(infringementKeyword);
+                        keywordDO.setPlatform(0);
+                        keywordDOS.add(keywordDO);
+                        keywordDOS.add(keywordDO);
+                        keywordMapper.insert(keywordDO);
+                    } catch (Exception e) {
+                        log.info("已经存在{}", row.getInfringementKeyword());
+                    }
+                }
+
                 // 关闭连接
                 connection.disconnect();
-                return response.toString();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+
         }
-        return null;
+        return success("成功");
     }
 
     @PostMapping("/saveKey")

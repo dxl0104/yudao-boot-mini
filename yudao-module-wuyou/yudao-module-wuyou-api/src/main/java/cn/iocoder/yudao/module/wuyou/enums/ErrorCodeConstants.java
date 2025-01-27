@@ -28,5 +28,6 @@ public interface ErrorCodeConstants {
     ErrorCode DELIVERY_IS_NULL = new ErrorCode(10022, "获取快递费错误");
     ErrorCode DISCOUNT_RULES_NOT_EXISTS = new ErrorCode(10023, "折扣规则不存在");
     ErrorCode DELIVERY_CONFIG_NOT_EXISTS = new ErrorCode(10024, "快递费归档不存在");
+    ErrorCode DELIVERY_EMPTY_NOT_EXISTS = new ErrorCode(10025, "快递为零商品不存在");
 
 }
