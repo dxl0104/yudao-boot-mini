@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -54,6 +55,9 @@ public class BasicDataPageReqVO extends PageParam {
     private String productId;
 
     private String type;
+
+    //倍数
+    private String multiple;
 
 
 

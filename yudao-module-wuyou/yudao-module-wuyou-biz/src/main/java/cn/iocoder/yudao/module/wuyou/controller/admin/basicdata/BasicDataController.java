@@ -12,8 +12,12 @@ import cn.iocoder.yudao.module.wuyou.controller.admin.basicdata.vo.*;
 import cn.iocoder.yudao.module.wuyou.controller.admin.keyword.vo.KeyWordQueryVO;
 import cn.iocoder.yudao.module.wuyou.controller.admin.keyword.vo.KeywordPageReqVO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.basicdata.BasicDataDO;
+import cn.iocoder.yudao.module.wuyou.dal.dataobject.deliveryconfig.DeliveryConfigDO;
+import cn.iocoder.yudao.module.wuyou.dal.dataobject.discountrules.DiscountRulesDO;
 import cn.iocoder.yudao.module.wuyou.dal.dataobject.keyword.KeywordDO;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.basicdata.BasicDataMapper;
+import cn.iocoder.yudao.module.wuyou.dal.mysql.deliveryconfig.DeliveryConfigMapper;
+import cn.iocoder.yudao.module.wuyou.dal.mysql.discountrules.DiscountRulesMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.keyword.KeywordMapper;
 import cn.iocoder.yudao.module.wuyou.dal.mysql.producturl.ProductUrlMapper;
 import cn.iocoder.yudao.module.wuyou.service.basicdata.BasicDataService;
@@ -36,13 +40,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.EXPORT;
@@ -69,6 +73,12 @@ public class BasicDataController {
 
     @Resource
     private BasicDataMapper basicDataMapper;
+
+    @Resource
+    private DiscountRulesMapper discountRulesMapper;
+
+    @Resource
+    private DeliveryConfigMapper deliveryConfigMapper;
 
     @PostMapping("/create")
     @Operation(summary = "创建无忧基础数据")
@@ -136,12 +146,76 @@ public class BasicDataController {
             if (!imgUrl.equals("")) {
                 basicDataDO.setImgUrl(imgUrl);
             }
+            //先折扣规则进行商品和物流价格修改
+            BasicDataCalVO basicDataCalVO = applyDiscount(new BigDecimal(basicDataDO.getPrice()), basicDataDO.getDelivery());
+            basicDataDO.setPrice(basicDataCalVO.getFinalProductPrice().toString());
+            basicDataDO.setDelivery(basicDataCalVO.getFinalShippingFee());
+            //物流价格进行归档
+            Integer deliveryLevel = calDelivery(basicDataDO.getDelivery());
+            basicDataDO.setDeliveryLevel(deliveryLevel);
+            //商品价格乘于系数
+            BigDecimal finalProductPrice = new BigDecimal(basicDataDO.getPrice()).multiply(new BigDecimal(pageReqVO.getMultiple())).setScale(2, RoundingMode.HALF_UP);
+            basicDataDO.setPrice(finalProductPrice.toString());
         }
 
+        Collections.sort(dataList, new Comparator<BasicDataDO>() {
+            @Override
+            public int compare(BasicDataDO o1, BasicDataDO o2) {
+                return o1.getDeliveryLevel().compareTo(o2.getDeliveryLevel());
+            }
+        });
         // 导出 Excel
         ExcelUtils.write(response, "无忧基础数据.xls", "数据", BasicDataExcelRespVO.class,
                 BeanUtils.toBean(dataList, BasicDataExcelRespVO.class));
     }
+
+    /**
+     * 进行物流归档
+     * @param delivery
+     * @return
+     */
+    public Integer calDelivery(BigDecimal delivery){
+        List<DeliveryConfigDO> configDOList = deliveryConfigMapper.selectList(new QueryWrapper<DeliveryConfigDO>().eq("deleted", 0));
+        for (DeliveryConfigDO deliveryConfigDO : configDOList) {
+            //统一左闭右开
+           if (delivery.compareTo(deliveryConfigDO.getStartMoney())>=0 && delivery.compareTo(deliveryConfigDO.getEndMoney())<0){
+               return deliveryConfigDO.getLevel();
+           }
+        }
+        //找不到档位就return -1
+        return -1;
+    }
+
+    public BasicDataCalVO applyDiscount(BigDecimal totalAmount, BigDecimal shippingFee) {
+        BigDecimal productDiscount = BigDecimal.ZERO;
+        BigDecimal shippingDiscount = BigDecimal.ZERO;
+
+        //查询出所有的规则
+        List<DiscountRulesDO> discountRules = discountRulesMapper.selectList(new QueryWrapper<DiscountRulesDO>().eq("deleted",0));
+
+        // 根据商品总价查询适用的折扣规则
+        for (DiscountRulesDO rule : discountRules) {
+            //左闭右开
+            if (totalAmount.compareTo(rule.getMinAmount()) >= 0 && totalAmount.compareTo(rule.getMaxAmount()) < 0) {
+                // 找到适用的折扣规则
+                productDiscount = rule.getDiscountAmount();
+                shippingDiscount = rule.getShippingDiscount();
+                break;  // 找到符合条件的折扣后，跳出循环
+            }
+        }
+
+        // 修改商品价格和物流价格   全部用加法
+        BigDecimal finalProductPrice = totalAmount.add(productDiscount);
+        BigDecimal finalShippingFee = shippingFee.add(shippingDiscount);
+
+        BasicDataCalVO basicDataCalVO = new BasicDataCalVO();
+        basicDataCalVO.setFinalProductPrice(finalProductPrice);
+        basicDataCalVO.setFinalShippingFee(finalShippingFee);
+
+        // 返回最终金额
+        return basicDataCalVO;
+    }
+
 
     public String getUrlData(String fileUrl) {
         try {

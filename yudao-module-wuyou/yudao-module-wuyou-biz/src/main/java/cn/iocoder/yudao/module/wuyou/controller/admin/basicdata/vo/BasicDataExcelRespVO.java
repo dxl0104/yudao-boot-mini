@@ -41,6 +41,11 @@ public class BasicDataExcelRespVO {
     @ExcelProperty("快递费")
     private Integer delivery;
 
+    @Schema(description = "物流档位")
+    @ColumnWidth(value = 20)
+    @ExcelProperty("物流档位")
+    private Integer deliveryLevel;
+
 
     @Schema(description = "url", example = "https://www.iocoder.cn")
     @ColumnWidth(value = 20)
@@ -54,6 +59,7 @@ public class BasicDataExcelRespVO {
     @ExcelProperty("quantity")
     @ColumnWidth(value = 20)
     private String quantity;
+
 
 
 //    @ExcelProperty("类目2")

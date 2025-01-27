@@ -2,6 +2,7 @@ package cn.iocoder.yudao.module.wuyou.dal.dataobject.basicdata;
 
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
@@ -123,6 +124,10 @@ public class BasicDataDO extends BaseDO {
      * 商品主图
      */
     private String mainUrl;
+
+    //快递费用归档级别
+    @TableField(exist = false)
+    private Integer deliveryLevel;
 
 
 }
