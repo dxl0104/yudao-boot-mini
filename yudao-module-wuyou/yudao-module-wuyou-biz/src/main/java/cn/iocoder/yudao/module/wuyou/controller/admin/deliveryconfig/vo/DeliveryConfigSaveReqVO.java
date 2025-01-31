@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @Data
 public class DeliveryConfigSaveReqVO {
 
-    @Schema(description = "id", requiredMode = Schema.RequiredMode.REQUIRED, example = "29652")
+    @Schema(description = "id", requiredMode = Schema.RequiredMode.REQUIRED, example = "24436")
     private Long id;
 
     @Schema(description = "起始费用")
@@ -21,5 +21,8 @@ public class DeliveryConfigSaveReqVO {
 
     @Schema(description = "归档级别")
     private Integer level;
+
+    @Schema(description = "物流价格")
+    private BigDecimal deliveryMoney;
 
 }

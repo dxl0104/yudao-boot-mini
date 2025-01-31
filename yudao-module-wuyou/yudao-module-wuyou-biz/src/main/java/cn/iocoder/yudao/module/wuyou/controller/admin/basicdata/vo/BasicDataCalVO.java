@@ -10,4 +10,6 @@ public class BasicDataCalVO {
     private BigDecimal finalProductPrice;
     //物流价格
     private BigDecimal finalShippingFee;
+    //级别
+    private Integer level;
 }

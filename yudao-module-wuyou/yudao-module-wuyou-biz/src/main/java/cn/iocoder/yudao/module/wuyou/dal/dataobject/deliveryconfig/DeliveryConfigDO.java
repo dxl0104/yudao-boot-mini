@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import com.baomidou.mybatisplus.annotation.*;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 
@@ -41,5 +42,9 @@ public class DeliveryConfigDO extends BaseDO {
      * 归档级别
      */
     private Integer level;
+    /**
+     * 物流价格
+     */
+    private BigDecimal deliveryMoney;
 
 }

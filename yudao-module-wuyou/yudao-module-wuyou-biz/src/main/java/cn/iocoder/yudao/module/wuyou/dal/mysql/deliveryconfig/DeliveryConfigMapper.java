@@ -23,6 +23,7 @@ public interface DeliveryConfigMapper extends BaseMapperX<DeliveryConfigDO> {
                 .eqIfPresent(DeliveryConfigDO::getEndMoney, reqVO.getEndMoney())
                 .eqIfPresent(DeliveryConfigDO::getLevel, reqVO.getLevel())
                 .betweenIfPresent(DeliveryConfigDO::getCreateTime, reqVO.getCreateTime())
+                .eqIfPresent(DeliveryConfigDO::getDeliveryMoney, reqVO.getDeliveryMoney())
                 .orderByDesc(DeliveryConfigDO::getId));
     }
 

@@ -13,7 +13,7 @@ import com.alibaba.excel.annotation.*;
 @ExcelIgnoreUnannotated
 public class DeliveryConfigRespVO {
 
-    @Schema(description = "id", requiredMode = Schema.RequiredMode.REQUIRED, example = "29652")
+    @Schema(description = "id", requiredMode = Schema.RequiredMode.REQUIRED, example = "24436")
     @ExcelProperty("id")
     private Long id;
 
@@ -32,5 +32,9 @@ public class DeliveryConfigRespVO {
     @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("创建时间")
     private LocalDateTime createTime;
+
+    @Schema(description = "物流价格")
+    @ExcelProperty("物流价格")
+    private BigDecimal deliveryMoney;
 
 }
