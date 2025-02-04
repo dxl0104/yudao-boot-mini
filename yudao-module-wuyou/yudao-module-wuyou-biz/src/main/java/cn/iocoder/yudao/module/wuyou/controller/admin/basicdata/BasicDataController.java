@@ -151,16 +151,31 @@ public class BasicDataController {
             if (!imgUrl.equals("")) {
                 basicDataDO.setImgUrl(imgUrl);
             }
-            if (basicDataDO.getDelivery().compareTo(BigDecimal.ZERO) >= 0 && basicDataDO.getDelivery().compareTo(BigDecimal.TEN) < 0) {
+            if (basicDataDO.getDelivery().compareTo(BigDecimal.ZERO) >= 0 && basicDataDO.getDelivery().compareTo(new BigDecimal("10.00")) < 0) {
                 iterator.remove();
             } else {
+                //这里再进行折扣的调整
+                BasicDataCalVO basicDataCalVO1 = applyDiscount(new BigDecimal(basicDataDO.getPrice()), basicDataDO.getDelivery());
+                basicDataDO.setDelivery(basicDataCalVO1.getFinalShippingFee());
+                basicDataDO.setPrice(basicDataCalVO1.getFinalProductPrice().toString());
+
                 BasicDataCalVO basicDataCalVO = calDelivery(basicDataDO.getDelivery(), new BigDecimal(basicDataDO.getPrice()));
                 basicDataDO.setDeliveryLevel(basicDataCalVO.getLevel());
-                basicDataDO.setDelivery(basicDataCalVO.getFinalShippingFee());
                 basicDataDO.setPrice(basicDataCalVO.getFinalProductPrice().toString());
+                basicDataDO.setDelivery(basicDataCalVO.getFinalShippingFee());
+
+
                 //商品价格乘于系数
                 BigDecimal finalProductPrice = new BigDecimal(basicDataDO.getPrice()).multiply(new BigDecimal(pageReqVO.getMultiple())).setScale(1, RoundingMode.HALF_UP);
-                basicDataDO.setPrice(finalProductPrice.toString());
+                if (finalProductPrice.compareTo(BigDecimal.ZERO)<=0){
+                    basicDataDO.setPrice("7");
+                    basicDataDO.setDelivery(basicDataDO.getDelivery().subtract(BigDecimal.TEN));
+                    basicDataDO.setDeliveryLevel(basicDataDO.getDeliveryLevel()-1);
+                }
+                else {
+                    basicDataDO.setPrice(finalProductPrice.toString());
+                }
+
             }
         }
         Collections.sort(dataList, new Comparator<BasicDataDO>() {
@@ -206,7 +221,7 @@ public class BasicDataController {
         //查询出所有的规则
         List<DiscountRulesDO> discountRules = discountRulesMapper.selectList(new QueryWrapper<DiscountRulesDO>().eq("deleted", 0));
 
-        // 根据商品总价查询适用的折扣规则
+        // 根据商品单价查询适用的折扣规则
         for (DiscountRulesDO rule : discountRules) {
             //左闭右开
             if (totalAmount.compareTo(rule.getMinAmount()) >= 0 && totalAmount.compareTo(rule.getMaxAmount()) < 0) {
@@ -281,6 +296,7 @@ public class BasicDataController {
     }
 
     @PostMapping("/getCategoryData")
+    @PermitAll
     public CommonResult<String> getCategoryData(@RequestBody BasicDataRqeCategoryVO basicDataRqeCategoryVO) {
         log.info("返回数据{}", getCategoryData(basicDataRqeCategoryVO.getSourceUrl(), basicDataRqeCategoryVO.getP(), null));
         return getCategoryData(basicDataRqeCategoryVO.getSourceUrl(), basicDataRqeCategoryVO.getP(), null);

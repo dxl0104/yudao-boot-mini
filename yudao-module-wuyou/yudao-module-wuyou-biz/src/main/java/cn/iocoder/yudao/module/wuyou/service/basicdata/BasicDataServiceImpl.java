@@ -312,7 +312,7 @@ public class BasicDataServiceImpl implements BasicDataService {
         basicDataDO.setDataJson(uploadUrl);
 
         //快递费用为0 则进行插入   0-9.99都不要
-        if (basicDataDO.getDelivery().compareTo(BigDecimal.ZERO)>=0 && basicDataDO.getDelivery().compareTo(BigDecimal.TEN)<0){
+        if (basicDataDO.getDelivery().compareTo(BigDecimal.ZERO)>=0 && basicDataDO.getDelivery().compareTo(new BigDecimal("10.00"))<0){
             //快递为0
             DeliveryEmptyDO deliveryEmptyDO = new DeliveryEmptyDO();
             BeanUtils.copyProperties(basicDataDO,deliveryEmptyDO);
